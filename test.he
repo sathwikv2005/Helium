@@ -1,0 +1,2 @@
+print (true || false);
+var a = 10;
