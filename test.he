@@ -1,2 +1,1 @@
-print (true || false);
-var a = 10;
+10 + 20 * 50 / 2 - 10
