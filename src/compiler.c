@@ -216,7 +216,7 @@ static ParseRule* getRule(TokenType type) { return &rules[type]; }
 
 static void grouping() {
     expression();
-    consume(TOKEN_RIGHT_PAREN, "Expect ') after expression.");
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 static uint8_t makeConstant(Value value) {
@@ -234,7 +234,7 @@ static void emitConstant(Value value) {
 
 static void number() {
     double value = strtod(parser.previous.start, NULL);
-    emitConstant(value);
+    emitConstant(NUMBER_VAL(value));
 }
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
