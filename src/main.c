@@ -7,7 +7,30 @@
 #include "../include/debug.h"
 #include "../include/vm.h"
 
+static void printBanner() {
+    printf("\033[36m");  // cyan
+    printf("\033[3m");   // italic
+
+    printf("############################################################\n");
+    printf("#                                                          #\n");
+    printf("#            _    _      _ _                               #\n");
+    printf("#           | |  | |    | (_)                              #\n");
+    printf("#           | |__| | ___| |_ _   _ _ __ ___                #\n");
+    printf("#           |  __  |/ _ \\ | | | | | '_ ` _ \\               #\n");
+    printf("#           | |  | |  __/ | | |_| | | | | | |              #\n");
+    printf("#           |_|  |_|\\___|_|_|\\__,_|_| |_| |_|              #\n");
+    printf("#                                                          #\n");
+    printf("#                       Helium v0.1                        #\n");
+    printf("#            Light as gas. Fast as lightning.              #\n");
+    printf("#                                                          #\n");
+    printf("############################################################\n\n");
+
+    printf("\033[0m");
+}
+
 static void repl() {
+    printBanner();
+
     char line[1024];
     for (;;) {
         printf("> ");
