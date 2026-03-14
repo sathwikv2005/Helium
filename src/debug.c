@@ -10,7 +10,7 @@ void disassembleChunk(Chunk* chunk, const char* name) {
     for (int offset = 0; offset < chunk->count;) {
         offset = disassembleInstruction(chunk, offset);
     }
-    printf("==+++++++++==\n", name);
+    printf("==+++++++++==\n");
 }
 
 static int constantInstruction(const char* name, Chunk* chunk, int offset) {
@@ -27,7 +27,7 @@ static int simpleInstruction(const char* name, int offset) {
 }
 
 int disassembleInstruction(Chunk* chunk, int offset) {
-    printf("%04d\t", offset);
+    printf("----%04d\t", offset);
     int line = getLine(chunk, offset);
     if (offset > 0 && line == getLine(chunk, offset - 1))
         printf("   |\t");
@@ -44,6 +44,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
             return simpleInstruction("OP_TRUE", offset);
         case OP_NULL:
             return simpleInstruction("OP_NULL", offset);
+        case OP_GET_GLOBAL:
+            return constantInstruction("OP_GET_GLOBAL", chunk, offset);
         case OP_DEFINE_GLOBAL:
             return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
         case OP_EQUAL:
