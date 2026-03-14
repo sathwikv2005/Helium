@@ -3,12 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef DEBUG_PRINT_CODE
-#include "../include/debug.h"
-#endif
-
 #include "../include/common.h"
 #include "../include/compiler.h"
+#include "../include/debug.h"
 #include "../include/scanner.h"
 
 typedef struct {
@@ -115,9 +112,9 @@ static void emitReturn() { emitByte(OP_RETURN); }
 
 static void endCompiler() {
     emitReturn();
-#ifdef DEBUG_PRINT_CODE
-    if (!parser.hadError) disassembleChunk(currentChunk(), "code");
-#endif
+
+    if (GET_DEBUG_CODE() && !parser.hadError)
+        disassembleChunk(currentChunk(), "code");
 }
 
 static void expression();

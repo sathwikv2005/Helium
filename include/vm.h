@@ -7,6 +7,22 @@
 
 #define STACK_MAX 256
 
+// debug macros
+#define DEBUG_TRACE (1u << 0)
+#define DEBUG_CODE (1u << 1)
+
+#define SET_DEBUG_TRACE() (vm.debugFlags |= DEBUG_TRACE)
+#define SET_DEBUG_CODE() (vm.debugFlags |= DEBUG_CODE)
+
+#define SET_DEBUG()        \
+    do {                   \
+        SET_DEBUG_CODE();  \
+        SET_DEBUG_TRACE(); \
+    } while (0)
+
+#define GET_DEBUG_TRACE() (((vm.debugFlags) & DEBUG_TRACE) != 0)
+#define GET_DEBUG_CODE() (((vm.debugFlags) & DEBUG_CODE) != 0)
+
 typedef struct {
     Chunk* chunk;
     uint8_t* ip;
@@ -16,6 +32,9 @@ typedef struct {
 
     Obj* objects;
     Value* stackTop;
+
+    // debug flags
+    uint8_t debugFlags;
 } VM;
 
 typedef enum {

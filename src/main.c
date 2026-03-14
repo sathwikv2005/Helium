@@ -88,11 +88,29 @@ int main(int argc, const char* argv[]) {
 
     if (argc == 1) {
         repl();
-    } else if (argc == 2) {
-        runFile(argv[1]);
-    } else {
-        fprintf(stderr, "Usage: helium <path>\n");
+    } else if (argv[1][0] == '-') {
+        fprintf(stderr, "Usage: helium <path> [-d|-dt|-dc]\n");
         exit(64);
+    } else {
+        const char* file = argv[1];
+
+        for (int i = 2; i < argc; i++) {
+            const char* arg = argv[i];
+
+            if (strcmp(arg, "-d") == 0) {
+                SET_DEBUG();
+            } else if (strcmp(arg, "-dt") == 0) {
+                SET_DEBUG_TRACE();
+            } else if (strcmp(arg, "-dc") == 0) {
+                SET_DEBUG_CODE();
+            } else {
+                fprintf(stderr, "Unknown flag: %s\n", arg);
+                fprintf(stderr, "Usage: helium <path> [-d|-dt|-dc]\n");
+                exit(64);
+            }
+        }
+
+        runFile(file);
     }
 
     freeVM();

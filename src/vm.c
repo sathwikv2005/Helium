@@ -32,6 +32,7 @@ static void runtimeError(const char* format, ...) {
 void initVM() {
     resetStack();
     vm.objects = NULL;
+    vm.debugFlags = 0;
     initTable(&vm.globals);
     initTable(&vm.strings);
 }
@@ -78,18 +79,19 @@ static InterpretResult run() {
     } while (false)
 
     while (true) {
-#ifdef DEBUG_TRACE_EXECUTION
-        printf("Stack=>\t");
-        printf("[ ");
-        for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
-            printValue(*slot);
-            printf(", ");
+        if (GET_DEBUG_TRACE()) {
+            printf("Stack=>\t");
+            printf("[ ");
+            for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+                printValue(*slot);
+                printf(", ");
+            }
+            printf("]");
+            printf("\n");
+            disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+            // printf("==+++++++++==\n");
         }
-        printf("]");
-        printf("\n");
-        disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
-        // printf("==+++++++++==\n");
-#endif
+
         uint8_t instruction;
         switch (instruction = READ_BYTE()) {
             case OP_CONSTANT: {
