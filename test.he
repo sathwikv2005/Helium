@@ -5,3 +5,5 @@ var a = 109;
 var b = 10;
 var c = 5;
 print (a+b)-c;
+a = 50;
+print a;
