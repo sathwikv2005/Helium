@@ -1,6 +1,8 @@
 #ifndef helium_vm_h
 #define helium_vm_h
 
+#include <setjmp.h>
+
 #include "chunk.h"
 #include "table.h"
 #include "value.h"
@@ -32,6 +34,8 @@ typedef struct {
 
     Obj* objects;
     Value* stackTop;
+
+    jmp_buf errorJmp;
 
     // debug flags
     uint8_t debugFlags;

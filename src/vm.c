@@ -27,6 +27,7 @@ static void runtimeError(const char* format, ...) {
     fprintf(stderr, "[line %d] in script\n", line);
 
     resetStack();
+    longjmp(vm.errorJmp, 1);
 }
 
 void initVM() {
@@ -213,17 +214,26 @@ InterpretResult interpret(const char* source) {
     vm.chunk = &chunk;
     vm.ip = vm.chunk->code;
 
+    if (setjmp(vm.errorJmp) != 0) {
+        freeChunk(&chunk);
+        return INTERPRET_RUNTIME_ERROR;
+    }
+
     InterpretResult result = run();
 
     freeChunk(&chunk);
     return result;
 }
 void push(Value value) {
-    *vm.stackTop = value;
-    vm.stackTop++;
+    if (vm.stackTop == vm.stack + STACK_MAX) {
+        runtimeError("Stack overflow error.");
+    }
+    *vm.stackTop++ = value;
 }
 
 Value pop() {
-    vm.stackTop--;
-    return *vm.stackTop;
+    if (vm.stackTop == vm.stack) {
+        runtimeError("Stack underflow error.");
+    }
+    return *--vm.stackTop;
 }
