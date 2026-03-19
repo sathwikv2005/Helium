@@ -1,0 +1,9 @@
+var a;
+a = 50;
+print a;
+print a + 100;
+print a;
+a = 600;
+print a;
+var b = 20;
+print a > b;

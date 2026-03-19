@@ -1,0 +1,2 @@
+[line 1] Error at 'a': Const variable must be initialized.
+[line 2] Error at 'b': Const variable must be initialized.

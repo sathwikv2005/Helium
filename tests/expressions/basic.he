@@ -1,0 +1,6 @@
+print 10+20*50+(100/2);
+print 500 == 500;
+print "test" != "test";
+print 5 + "string";
+print  5 + "string" ==  5 + "string";
+print 5 == "5";

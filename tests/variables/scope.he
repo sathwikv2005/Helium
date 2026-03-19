@@ -1,0 +1,9 @@
+var a = 50;
+print a;
+{
+    const a = 5000;
+    print a;
+}
+print a;
+a = 5;
+print a;
