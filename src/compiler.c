@@ -114,6 +114,7 @@ static bool match(TokenType type) {
 }
 
 static void emitByte(uint8_t byte) {
+    if (parser.hadError) return;
     writeChunk(currentChunk(), byte, parser.previous.line);
 }
 static void emitBytes(uint8_t byte1, uint8_t byte2) {
@@ -314,8 +315,6 @@ static void namedVariable(Token name, bool canAssign) {
         if (canAssign && match(TOKEN_EQUAL)) {
             if (current->locals[arg].isConst) {
                 error("Cannot assign to const variable.");
-                expression();
-                return;
             }
             expression();
             emitBytes(OP_SET_LOCAL, (uint8_t)arg);
@@ -459,7 +458,7 @@ static void synchronize() {
     parser.panicMode = false;
 
     while (parser.current.type != TOKEN_EOF) {
-        if (parser.current.type == TOKEN_SEMICOLON) return;
+        if (parser.previous.type == TOKEN_SEMICOLON) return;
         switch (parser.current.type) {
             case TOKEN_CLASS:
             case TOKEN_FUNCTION:
@@ -474,6 +473,8 @@ static void synchronize() {
 
             default:;  // do nothing.
         }
+
+        advance();
     }
 }
 
