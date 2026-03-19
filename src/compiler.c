@@ -19,6 +19,7 @@ typedef struct {
 typedef struct {
     Token name;
     int depth;
+    bool isConst;
 } Local;
 
 typedef struct {
@@ -74,7 +75,7 @@ static void errorAt(Token* token, const char* message) {
         fprintf(stderr, " at '%.*s'", token->length, token->start);
     }
 
-    fprintf(stderr, ": %s\n ", message);
+    fprintf(stderr, ": %s\n", message);
     parser.hadError = true;
 }
 
@@ -140,13 +141,14 @@ static uint8_t identifierConstant(Token* name) {
     return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
-static void addLocal(Token name) {
+static void addLocal(Token name, bool isConst) {
     if (current->localCount == UINT8_COUNT) {
         error("Too many local variables in function.");
         return;
     }
     Local* local = &current->locals[current->localCount++];
     local->name = name;
+    local->isConst = isConst;
     local->depth = -1;
 }
 
@@ -169,7 +171,7 @@ static int resolveLocal(Compiler* compiler, Token* name) {
     return -1;
 }
 
-static void declareVariable() {
+static void declareVariable(bool isConst) {
     if (current->scopeDepth == 0) return;
 
     Token* name = &parser.previous;
@@ -185,13 +187,13 @@ static void declareVariable() {
         }
     }
 
-    addLocal(*name);
+    addLocal(*name, isConst);
 }
 
-static uint8_t parseVariable(const char* errorMessage) {
+static uint8_t parseVariable(const char* errorMessage, bool isConst) {
     consume(TOKEN_IDENTIFIER, errorMessage);
 
-    declareVariable();
+    declareVariable(isConst);
     if (current->scopeDepth > 0) return 0;
 
     return identifierConstant(&parser.previous);
@@ -305,22 +307,31 @@ static void parsePrecedence(Precedence precedence) {
 }
 
 static void namedVariable(Token name, bool canAssign) {
-    uint8_t getOp, setOp;
     int arg = resolveLocal(current, &name);
-    if (arg != -1) {
-        getOp = OP_GET_LOCAL;
-        setOp = OP_SET_LOCAL;
-    } else {
-        arg = identifierConstant(&name);
-        getOp = OP_GET_GLOBAL;
-        setOp = OP_SET_GLOBAL;
-    }
 
-    if (canAssign && match(TOKEN_EQUAL)) {
-        expression();
-        emitBytes(setOp, (uint8_t)arg);
+    if (arg != -1) {
+        // LOCAL
+        if (canAssign && match(TOKEN_EQUAL)) {
+            if (current->locals[arg].isConst) {
+                error("Cannot assign to const variable.");
+                expression();
+                return;
+            }
+            expression();
+            emitBytes(OP_SET_LOCAL, (uint8_t)arg);
+        } else {
+            emitBytes(OP_GET_LOCAL, (uint8_t)arg);
+        }
     } else {
-        emitBytes(getOp, (uint8_t)arg);
+        // GLOBAL
+        arg = identifierConstant(&name);
+
+        if (canAssign && match(TOKEN_EQUAL)) {
+            expression();
+            emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+        } else {
+            emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+        }
     }
 }
 
@@ -405,7 +416,7 @@ static void string(bool canAssign) {
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
 static void varDeclaration() {
-    uint8_t global = parseVariable("Expect variable name.");
+    uint8_t global = parseVariable("Expect variable name.", false);
 
     if (match(TOKEN_EQUAL))
         expression();
@@ -418,12 +429,12 @@ static void varDeclaration() {
 }
 
 static void constDeclaration() {
-    uint8_t global = parseVariable("Expect variable name.");
+    uint8_t global = parseVariable("Expect variable name.", true);
 
     if (match(TOKEN_EQUAL))
         expression();
     else {
-        error("const variable must be initialized.");
+        error("Const variable must be initialized.");
         emitByte(OP_NULL);
     }
 
