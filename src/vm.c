@@ -124,11 +124,26 @@ static InterpretResult run() {
             }
             case OP_SET_GLOBAL: {
                 ObjString* name = READ_STRING();
-                if (tableSet(&vm.globals, name, peek(0))) {
-                    tableDelete(&vm.globals, name);
+                Value value;
+
+                if (!tableGet(&vm.globals, name, &value)) {
                     runtimeError("Undefined variable '%s'.", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
                 }
+
+                if (!IS_VARIABLE(value)) {
+                    runtimeError("Internal error: expected variable.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjVariable* var = AS_VARIABLE(value);
+
+                if (var->isConst) {
+                    runtimeError("Cannot assign to const variable '%s'.",
+                                 name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                var->value = peek(0);
                 break;
             }
             case OP_GET_GLOBAL: {
@@ -138,12 +153,25 @@ static InterpretResult run() {
                     runtimeError("Undefined variable '%s'.", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                push(value);
+                if (!IS_VARIABLE(value)) {
+                    runtimeError("Internal error: expected variable.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjVariable* var = AS_VARIABLE(value);
+                push(var->value);
                 break;
             }
             case OP_DEFINE_GLOBAL: {
                 ObjString* name = READ_STRING();
-                tableSet(&vm.globals, name, peek(0));
+                tableSet(&vm.globals, name,
+                         OBJ_VAL(newVariable(peek(0), false)));
+                pop();
+                break;
+            }
+            case OP_DEFINE_GLOBAL_CONST: {
+                ObjString* name = READ_STRING();
+                tableSet(&vm.globals, name,
+                         OBJ_VAL(newVariable(peek(0), true)));
                 pop();
                 break;
             }

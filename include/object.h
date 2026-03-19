@@ -5,14 +5,14 @@
 #include "value.h"
 
 #define OBJ_TYPE(value) AS_OBJ(value)->type
+#define IS_VARIABLE(value) isObjType(value, OBJ_VARIABLE)
 #define IS_STRING(value) isObjType(value, OBJ_STRING)
 
+#define AS_VARIABLE(value) ((ObjVariable*)AS_OBJ(value))
 #define AS_STRING(value) ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value) (((ObjString*)AS_OBJ(value))->chars)
 
-typedef enum {
-    OBJ_STRING,
-} ObjType;
+typedef enum { OBJ_STRING, OBJ_VARIABLE } ObjType;
 
 struct Obj {
     ObjType type;
@@ -25,6 +25,14 @@ struct ObjString {
     char* chars;
     uint32_t hash;
 };
+
+typedef struct {
+    Obj obj;
+    Value value;
+    bool isConst;
+} ObjVariable;
+
+ObjVariable* newVariable(Value value, bool isConst);
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);

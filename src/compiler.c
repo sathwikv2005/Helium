@@ -201,12 +201,12 @@ static void markInitialized() {
     current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
-static void defineVariable(uint8_t global) {
+static void defineVariable(uint8_t global, bool isConst) {
     if (current->scopeDepth > 0) {
         markInitialized();
         return;
     }
-    emitBytes(OP_DEFINE_GLOBAL, global);
+    emitBytes(isConst ? OP_DEFINE_GLOBAL_CONST : OP_DEFINE_GLOBAL, global);
 }
 
 static void binary(bool canAssign) {
@@ -365,6 +365,7 @@ ParseRule rules[] = {
     [TOKEN_SUPER] = {NULL, NULL, PREC_NONE},
     [TOKEN_THIS] = {NULL, NULL, PREC_NONE},
     [TOKEN_TRUE] = {literal, NULL, PREC_NONE},
+    [TOKEN_CONST] = {NULL, NULL, PREC_NONE},
     [TOKEN_VAR] = {NULL, NULL, PREC_NONE},
     [TOKEN_WHILE] = {NULL, NULL, PREC_NONE},
     [TOKEN_ERROR] = {NULL, NULL, PREC_NONE},
@@ -413,7 +414,22 @@ static void varDeclaration() {
 
     consume(TOKEN_SEMICOLON, "Expect ';' after var declaration");
 
-    defineVariable(global);
+    defineVariable(global, false);
+}
+
+static void constDeclaration() {
+    uint8_t global = parseVariable("Expect variable name.");
+
+    if (match(TOKEN_EQUAL))
+        expression();
+    else {
+        error("const variable must be initialized.");
+        emitByte(OP_NULL);
+    }
+
+    consume(TOKEN_SEMICOLON, "Expect ';' after const declaration");
+
+    defineVariable(global, true);
 }
 
 static void expressionStatement() {
@@ -436,6 +452,7 @@ static void synchronize() {
         switch (parser.current.type) {
             case TOKEN_CLASS:
             case TOKEN_FUNCTION:
+            case TOKEN_CONST:
             case TOKEN_VAR:
             case TOKEN_FOR:
             case TOKEN_IF:
@@ -452,6 +469,8 @@ static void synchronize() {
 static void declaration() {
     if (match(TOKEN_VAR)) {
         varDeclaration();
+    } else if (match(TOKEN_CONST)) {
+        constDeclaration();
     } else {
         statement();
     }
