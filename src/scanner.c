@@ -82,6 +82,7 @@ static void skipWhitespace() {
             case '/':
                 if (peekNext() == '/') {
                     while (peek() != '\n' && !isAtEnd()) advance();
+                    break;
                 } else {
                     return;
                 }
