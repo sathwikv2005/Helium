@@ -1,0 +1,4 @@
+if (10>1) {
+    print "yes";
+}
+print "done";
