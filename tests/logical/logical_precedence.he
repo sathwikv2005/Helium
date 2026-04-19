@@ -1,0 +1,8 @@
+print(true || false && false);
+print(true or false and false);
+
+print(false || true && false);
+print(false or true and false);
+
+print(true || false && true);
+print(true or false and true);
