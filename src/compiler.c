@@ -33,6 +33,8 @@ typedef void (*ParseFn)(bool canAssign);
 #define MAX_BREAKS 256
 typedef struct {
     int start;
+    int scopeDepth;
+    int localCount;
     int breakCount;
     int breaks[MAX_BREAKS];
 } LoopContext;
@@ -238,9 +240,8 @@ static void endScope() {
     }
 }
 
-static void emitPopForScope() {
-    for (int i = current->localCount - 1; i >= 0; i--) {
-        if (current->locals[i].depth < current->scopeDepth) break;
+static void emitPopToCount(int targetCount) {
+    for (int i = current->localCount - 1; i >= targetCount; i--) {
         emitByte(OP_POP);
     }
 }
@@ -584,19 +585,23 @@ static void whileStatement() {
 
     LoopContext ctx;
     ctx.start = loopStart;
+    ctx.localCount = current->localCount;
+    ctx.scopeDepth = current->scopeDepth;
     ctx.breakCount = 0;
 
     loopStack[loopDepth++] = ctx;
 
     statement();
     emitLoop(loopStart);
+
     patchJump(exitJump);
+    emitByte(OP_POP);
+
     LoopContext* loopCtx = &loopStack[--loopDepth];
 
     for (int i = 0; i < loopCtx->breakCount; i++) {
         patchJump(loopCtx->breaks[i]);
     }
-    emitByte(OP_POP);
 }
 
 static void forStatement() {
@@ -637,7 +642,9 @@ static void forStatement() {
 
     LoopContext ctx;
     ctx.start = loopStart;
+    ctx.localCount = current->localCount;
     ctx.breakCount = 0;
+    ctx.scopeDepth = current->scopeDepth;
 
     loopStack[loopDepth++] = ctx;
 
@@ -665,11 +672,11 @@ static void breakStatement() {
 
     consume(TOKEN_SEMICOLON, "Expect ';' after 'break'.");
 
-    emitPopForScope();
+    LoopContext* ctx = &loopStack[loopDepth - 1];
+
+    emitPopToCount(ctx->localCount);
 
     int jump = emitJump(OP_JUMP);
-
-    LoopContext* ctx = &loopStack[loopDepth - 1];
     ctx->breaks[ctx->breakCount++] = jump;
 }
 
@@ -678,7 +685,9 @@ static void continueStatement() {
         error("Cannot use 'continue' outside of a loop.");
         return;
     }
+    LoopContext* ctx = &loopStack[loopDepth - 1];
 
+    emitPopToCount(ctx->localCount);
     consume(TOKEN_SEMICOLON, "Expect ';' after 'continue'.");
     emitLoop(loopStack[loopDepth - 1].start);
 }
