@@ -1,0 +1,8 @@
+print true ? 1 : false ? 2 : 3;
+print false ? 1 : true ? 2 : 3;
+print false ? 1 : false ? 2 : 3;
+
+print false ? 1 : (true ? 2 : 3);
+
+print true ? false ? 1 : 2 : 3;
+print false ? 1 : true ? false ? 2 : 3 : 4;

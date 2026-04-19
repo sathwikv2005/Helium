@@ -1,0 +1,9 @@
+var x = true ? 5 : 10;
+print x;
+
+var y = false ? 5 : 10;
+print y;
+
+var z;
+z = true ? 1 : 2;
+print z;
