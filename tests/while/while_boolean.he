@@ -1,0 +1,10 @@
+var flag = true;
+var i = 0;
+
+while (flag) {
+    print i;
+    i = i + 1;
+    if (i == 3) {
+        flag = false;
+    }
+}
