@@ -215,6 +215,19 @@ static int resolveLocal(Compiler* compiler, Token* name) {
     return -1;
 }
 
+static void beginScope() { current->scopeDepth++; }
+
+static void endScope() {
+    current->scopeDepth--;
+
+    while (current->localCount > 0 &&
+           current->locals[current->localCount - 1].depth >
+               current->scopeDepth) {
+        emitByte(OP_POP);
+        current->localCount--;
+    }
+}
+
 static void declareVariable(bool isConst) {
     if (current->scopeDepth == 0) return;
 
@@ -555,6 +568,52 @@ static void whileStatement() {
     emitByte(OP_POP);
 }
 
+static void forStatement() {
+    beginScope();
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+
+    if (match(TOKEN_SEMICOLON)) {
+        // no initializer.
+    } else if (match(TOKEN_VAR)) {
+        varDeclaration();
+    } else {
+        expressionStatement();
+    }
+
+    int loopStart = currentChunk()->count;
+
+    int exitJump = -1;
+    if (!match(TOKEN_SEMICOLON)) {
+        expression();
+        consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
+
+        // exit loop if false.
+        exitJump = emitJump(OP_JUMP_IF_FALSE);
+        emitByte(OP_POP);  // pop condition.
+    }
+
+    if (!match(TOKEN_RIGHT_PAREN)) {
+        int bodyJump = emitJump(OP_JUMP);
+        int incrementStart = currentChunk()->count;
+        expression();
+        emitByte(OP_POP);
+        consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        emitLoop(loopStart);
+        loopStart = incrementStart;
+        patchJump(bodyJump);
+    }
+
+    statement();
+    emitLoop(loopStart);
+    endScope();
+
+    if (exitJump != -1) {
+        patchJump(exitJump);
+        emitByte(OP_POP);
+    }
+}
+
 static void printStatement() {
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after value");
@@ -605,24 +664,13 @@ static void block() {
     consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-static void beginScope() { current->scopeDepth++; }
-
-static void endScope() {
-    current->scopeDepth--;
-
-    while (current->localCount > 0 &&
-           current->locals[current->localCount - 1].depth >
-               current->scopeDepth) {
-        emitByte(OP_POP);
-        current->localCount--;
-    }
-}
-
 static void statement() {
     if (match(TOKEN_PRINT))
         printStatement();
     else if (match(TOKEN_IF)) {
         ifStatement();
+    } else if (match(TOKEN_FOR)) {
+        forStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
