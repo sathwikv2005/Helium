@@ -33,6 +33,7 @@ typedef void (*ParseFn)(bool canAssign);
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,  // =
+    PREC_TERNARY,     // condition ? if_true : else
     PREC_OR,          // or
     PREC_AND,         // and
     PREC_EQUALITY,    // == !=
@@ -127,6 +128,31 @@ static int emitJump(uint8_t instruction) {
     emitByte(0xff);
     emitByte(0xff);
     return currentChunk()->count - 2;
+}
+
+static uint8_t makeConstant(Value value) {
+    int constant = addConstant(currentChunk(), value);
+    if (constant > UINT8_MAX) {
+        error("Too many constants in one chunk.");
+        return 0;
+    }
+    return (uint8_t)constant;
+}
+
+static void emitConstant(Value value) {
+    emitBytes(OP_CONSTANT, makeConstant(value));
+}
+
+static void patchJump(int offset) {
+    // +2 to adjust for the bytecodes for the jump offset itself.
+    int jump = currentChunk()->count - (offset + 2);
+
+    if (jump > UINT16_MAX) {
+        error("Too much code to jump over.");
+    }
+
+    currentChunk()->code[offset] = (jump >> 8) & 0xff;
+    currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void emitReturn() { emitByte(OP_RETURN); }
@@ -345,6 +371,28 @@ static void variable(bool canAssign) {
     namedVariable(parser.previous, canAssign);
 }
 
+static void ternary(bool canAssign) {
+    int elseJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump;
+
+    emitByte(OP_POP);
+
+    // true branch
+    parsePrecedence(PREC_ASSIGNMENT);
+
+    endJump = emitJump(OP_JUMP);
+
+    patchJump(elseJump);
+    emitByte(OP_POP);
+
+    consume(TOKEN_COLON, "Expect ':' after expression.");
+
+    // false branch
+    parsePrecedence(PREC_ASSIGNMENT);
+
+    patchJump(endJump);
+}
+
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_NONE},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
@@ -355,6 +403,7 @@ ParseRule rules[] = {
     [TOKEN_MINUS] = {unary, binary, PREC_TERM},
     [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
     [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
+    [TOKEN_QUESTION] = {NULL, ternary, PREC_TERNARY},
     [TOKEN_SLASH] = {NULL, binary, PREC_FACTOR},
     [TOKEN_STAR] = {NULL, binary, PREC_FACTOR},
     [TOKEN_BANG] = {unary, NULL, PREC_NONE},
@@ -394,31 +443,6 @@ static ParseRule* getRule(TokenType type) { return &rules[type]; }
 static void grouping(bool canAssign) {
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
-}
-
-static uint8_t makeConstant(Value value) {
-    int constant = addConstant(currentChunk(), value);
-    if (constant > UINT8_MAX) {
-        error("Too many constants in one chunk.");
-        return 0;
-    }
-    return (uint8_t)constant;
-}
-
-static void emitConstant(Value value) {
-    emitBytes(OP_CONSTANT, makeConstant(value));
-}
-
-static void patchJump(int offset) {
-    // +2 to adjust for the bytecodes for the jump offset itself.
-    int jump = currentChunk()->count - (offset + 2);
-
-    if (jump > UINT16_MAX) {
-        error("Too much code to jump over.");
-    }
-
-    currentChunk()->code[offset] = (jump >> 8) & 0xff;
-    currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void number(bool canAssign) {
