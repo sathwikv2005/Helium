@@ -30,6 +30,16 @@ typedef struct {
 
 typedef void (*ParseFn)(bool canAssign);
 
+#define MAX_BREAKS 256
+typedef struct {
+    int start;
+    int breakCount;
+    int breaks[MAX_BREAKS];
+} LoopContext;
+
+LoopContext loopStack[64];
+int loopDepth = 0;
+
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,  // =
@@ -225,6 +235,13 @@ static void endScope() {
                current->scopeDepth) {
         emitByte(OP_POP);
         current->localCount--;
+    }
+}
+
+static void emitPopForScope() {
+    for (int i = current->localCount - 1; i >= 0; i--) {
+        if (current->locals[i].depth < current->scopeDepth) break;
+        emitByte(OP_POP);
     }
 }
 
@@ -461,7 +478,9 @@ ParseRule rules[] = {
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
     [TOKEN_AND] = {NULL, and_, PREC_AND},
+    [TOKEN_BREAK] = {NULL, and_, PREC_NONE},
     [TOKEN_CLASS] = {NULL, NULL, PREC_NONE},
+    [TOKEN_CONTINUE] = {NULL, NULL, PREC_NONE},
     [TOKEN_ELSE] = {NULL, NULL, PREC_NONE},
     [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
     [TOKEN_FOR] = {NULL, NULL, PREC_NONE},
@@ -562,9 +581,21 @@ static void whileStatement() {
 
     int exitJump = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP);
+
+    LoopContext ctx;
+    ctx.start = loopStart;
+    ctx.breakCount = 0;
+
+    loopStack[loopDepth++] = ctx;
+
     statement();
     emitLoop(loopStart);
     patchJump(exitJump);
+    LoopContext* loopCtx = &loopStack[--loopDepth];
+
+    for (int i = 0; i < loopCtx->breakCount; i++) {
+        patchJump(loopCtx->breaks[i]);
+    }
     emitByte(OP_POP);
 }
 
@@ -604,6 +635,12 @@ static void forStatement() {
         patchJump(bodyJump);
     }
 
+    LoopContext ctx;
+    ctx.start = loopStart;
+    ctx.breakCount = 0;
+
+    loopStack[loopDepth++] = ctx;
+
     statement();
     emitLoop(loopStart);
 
@@ -611,7 +648,39 @@ static void forStatement() {
         patchJump(exitJump);
         emitByte(OP_POP);
     }
+
+    LoopContext* loopCtx = &loopStack[--loopDepth];
+
+    for (int i = 0; i < loopCtx->breakCount; i++) {
+        patchJump(loopCtx->breaks[i]);
+    }
     endScope();
+}
+
+static void breakStatement() {
+    if (loopDepth == 0) {
+        error("Cannot use 'break' outside of a loop.");
+        return;
+    }
+
+    consume(TOKEN_SEMICOLON, "Expect ';' after 'break'.");
+
+    emitPopForScope();
+
+    int jump = emitJump(OP_JUMP);
+
+    LoopContext* ctx = &loopStack[loopDepth - 1];
+    ctx->breaks[ctx->breakCount++] = jump;
+}
+
+static void continueStatement() {
+    if (loopDepth == 0) {
+        error("Cannot use 'continue' outside of a loop.");
+        return;
+    }
+
+    consume(TOKEN_SEMICOLON, "Expect ';' after 'continue'.");
+    emitLoop(loopStack[loopDepth - 1].start);
 }
 
 static void printStatement() {
@@ -673,6 +742,10 @@ static void statement() {
         forStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();
+    } else if (match(TOKEN_BREAK)) {
+        breakStatement();
+    } else if (match(TOKEN_CONTINUE)) {
+        continueStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
         beginScope();
         block();
