@@ -38,7 +38,7 @@ void printValue(Value value) {
             printf("null");
             break;
         case VAL_NUMBER:
-            printf("%g", AS_NUMBER(value));
+            printf("%.15g", AS_NUMBER(value));
             break;
         case VAL_OBJ:
             printObject(value);
