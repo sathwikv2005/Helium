@@ -8,6 +8,7 @@
 #include "../include/compiler.h"
 #include "../include/debug.h"
 #include "../include/memory.h"
+#include "../include/nativeFn.h"
 #include "../include/object.h"
 #include "../include/vm.h"
 
@@ -18,7 +19,7 @@ static void resetStack() {
     vm.frameCount = 0;
 }
 
-static void runtimeError(const char* format, ...) {
+void runtimeError(const char* format, ...) {
     va_list args;
     va_start(args, format);
     vfprintf(stderr, format, args);
@@ -48,6 +49,8 @@ void initVM() {
     vm.debugFlags = 0;
     initTable(&vm.globals);
     initTable(&vm.strings);
+
+    mapNatives();
 }
 
 void freeVM() {
@@ -80,6 +83,13 @@ static bool callValue(Value callee, int argCount) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_FUNCTION:
                 return call(AS_FUNCTION(callee), argCount);
+            case OBJ_NATIVE: {
+                NativeFn native = AS_NATIVE(callee);
+                Value result = native(argCount, vm.stackTop - argCount);
+                vm.stackTop -= argCount + 1;
+                push(result);
+                return true;
+            }
             default:
                 break;  // Non-callable object type.
         }
@@ -201,12 +211,12 @@ static InterpretResult run() {
                     runtimeError("Undefined variable '%s'.", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                if (!IS_VARIABLE(value)) {
-                    runtimeError("Internal error: expected variable.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-                ObjVariable* var = AS_VARIABLE(value);
-                push(var->value);
+                if (IS_VARIABLE(value)) {
+                    ObjVariable* var = AS_VARIABLE(value);
+                    push(var->value);
+                    break;
+                } else
+                    push(value);
                 break;
             }
             case OP_DEFINE_GLOBAL: {
