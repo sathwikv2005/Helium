@@ -1,0 +1,19 @@
+print string(true);
+print string(false);
+print string(null);
+print string(123.456);
+print string("hello");
+
+function foo() {}
+print string(foo);
+
+print string(clock);
+
+print number("123");
+print number("45.67");
+print number("-10");
+
+print string(number("42"));
+
+print clock() >= 0;
+print time() > 0;
