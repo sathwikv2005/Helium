@@ -1,0 +1,9 @@
+var a = 100;
+
+function test() {
+    var a = 5;
+    return a;
+}
+
+print test();
+print a;

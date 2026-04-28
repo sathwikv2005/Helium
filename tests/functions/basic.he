@@ -1,0 +1,45 @@
+function sayHi() {
+    print "hi";
+}
+
+sayHi();
+
+function noReturn() {
+    var a = 10;
+}
+
+print noReturn();
+
+function giveNumber() {
+    return 42;
+}
+
+print giveNumber();
+
+function giveString() {
+    return "hello";
+}
+
+print giveString();
+
+function giveBool() {
+    return true;
+}
+
+print giveBool();
+
+function test(x) {
+    if (x > 0) {
+        return 1;
+    }
+    return -1;
+}
+
+print test(5);
+print test(-2);
+
+function test() {
+    return;
+}
+
+print test();

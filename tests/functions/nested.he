@@ -1,0 +1,23 @@
+function inner() {
+    return 5;
+}
+
+function outer() {
+    return inner() + 10;
+}
+
+print outer();
+
+function a() {
+    return 2;
+}
+
+function b() {
+    return a() * 3;
+}
+
+function c() {
+    return b() + a();
+}
+
+print c();
