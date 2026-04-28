@@ -297,8 +297,17 @@ static InterpretResult run() {
                 break;
             }
             case OP_RETURN: {
-                // exit
-                return INTERPRET_OK;
+                Value result = pop();
+                vm.frameCount--;
+                if (vm.frameCount == 0) {
+                    pop();
+                    return INTERPRET_OK;
+                }
+
+                vm.stackTop = frame->slots;
+                push(result);
+                frame = &vm.frames[vm.frameCount - 1];
+                break;
             }
             default:
                 break;
@@ -322,7 +331,7 @@ InterpretResult interpret(const char* source) {
     push(OBJ_VAL(function));
     call(function, 0);
 
-        if (setjmp(vm.errorJmp) != 0) {
+    if (setjmp(vm.errorJmp) != 0) {
         return INTERPRET_RUNTIME_ERROR;
     }
 
