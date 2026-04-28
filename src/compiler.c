@@ -788,7 +788,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     local->name.length = 0;
 }
 
-ObjFunction* compile(const char* source, Chunk* chunk) {
+ObjFunction* compile(const char* source) {
     initScanner(source);
 
     Compiler compiler;

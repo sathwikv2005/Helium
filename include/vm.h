@@ -4,10 +4,12 @@
 #include <setjmp.h>
 
 #include "chunk.h"
+#include "object.h"
 #include "table.h"
 #include "value.h"
 
-#define STACK_MAX 256
+#define FRAMES_MAX 64
+#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
 // debug macros
 #define DEBUG_TRACE (1u << 0)
@@ -26,8 +28,15 @@
 #define GET_DEBUG_CODE() (((vm.debugFlags) & DEBUG_CODE) != 0)
 
 typedef struct {
-    Chunk* chunk;
+    ObjFunction* function;
     uint8_t* ip;
+    Value* slots;
+} CallFrame;
+
+typedef struct {
+    CallFrame frames[FRAMES_MAX];
+    int frameCount;
+
     Value stack[STACK_MAX];
     Table strings;
     Table globals;
