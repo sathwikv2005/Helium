@@ -25,10 +25,18 @@ static void runtimeError(const char* format, ...) {
     va_end(args);
     fputs("\n", stderr);
 
-    CallFrame* frame = &vm.frames[vm.frameCount - 1];
-    size_t instruction = frame->ip - frame->function->chunk.code - 1;
-    int line = getLine(&frame->function->chunk, instruction);
-    fprintf(stderr, "[line %d] in script\n", line);
+    for (int i = vm.frameCount - 1; i >= 0; i--) {
+        CallFrame* frame = &vm.frames[i];
+        ObjFunction* function = frame->function;
+        size_t instruction = frame->ip - function->chunk.code - 1;
+        fprintf(stderr, "[line %d] in ",
+                getLine(&frame->function->chunk, instruction));
+        if (function->name == NULL) {
+            fprintf(stderr, "script\n");
+        } else {
+            fprintf(stderr, "%s()\n", function->name->chars);
+        }
+    }
 
     resetStack();
     longjmp(vm.errorJmp, 1);
@@ -49,6 +57,36 @@ void freeVM() {
 }
 
 static Value peek(int distance) { return vm.stackTop[-1 - distance]; }
+
+static bool call(ObjFunction* function, int argCount) {
+    if (argCount != function->arity) {
+        runtimeError("Expected %d arguments but got %d.", function->arity,
+                     argCount);
+        return false;
+    }
+    if (vm.frameCount == FRAMES_MAX) {
+        runtimeError("Stack overflow.");
+        return false;
+    }
+    CallFrame* frame = &vm.frames[vm.frameCount++];
+    frame->function = function;
+    frame->ip = function->chunk.code;
+    frame->slots = vm.stackTop - argCount - 1;
+    return true;
+}
+
+static bool callValue(Value callee, int argCount) {
+    if (IS_OBJ(callee)) {
+        switch (OBJ_TYPE(callee)) {
+            case OBJ_FUNCTION:
+                return call(AS_FUNCTION(callee), argCount);
+            default:
+                break;  // Non-callable object type.
+        }
+    }
+    runtimeError("Can only call functions and classes.");
+    return false;
+}
 
 static bool isFalsey(Value value) {
     return IS_NULL(value) || (IS_BOOL(value) && !AS_BOOL(value));
@@ -250,6 +288,14 @@ static InterpretResult run() {
                 frame->ip -= offset;
                 break;
             }
+            case OP_CALL: {
+                int argCount = READ_BYTE();
+                if (!callValue(peek(argCount), argCount)) {
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                frame = &vm.frames[vm.frameCount - 1];
+                break;
+            }
             case OP_RETURN: {
                 // exit
                 return INTERPRET_OK;
@@ -274,13 +320,9 @@ InterpretResult interpret(const char* source) {
     }
 
     push(OBJ_VAL(function));
+    call(function, 0);
 
-    CallFrame* frame = &vm.frames[vm.frameCount++];
-    frame->function = function;
-    frame->ip = function->chunk.code;
-    frame->slots = vm.stack;
-
-    if (setjmp(vm.errorJmp) != 0) {
+        if (setjmp(vm.errorJmp) != 0) {
         return INTERPRET_RUNTIME_ERROR;
     }
 
