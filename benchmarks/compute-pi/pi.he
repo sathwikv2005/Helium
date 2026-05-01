@@ -1,0 +1,13 @@
+var n = 10000000;
+var step = 1.0 / n;
+var sum = 0.0;
+
+var i = 0;
+while (i < n) {
+    var x = (i + 0.5) * step;
+    sum = sum + 4.0 / (1.0 + x * x);
+    i = i + 1;
+}
+
+var pi = sum * step;
+print pi;
