@@ -22,6 +22,12 @@ typedef struct {
     bool isConst;
 } Local;
 
+typedef struct {
+    uint8_t index;
+    bool isLocal;
+    bool isConst;
+} Upvalue;
+
 typedef enum { TYPE_FUNCTION, TYPE_SCRIPT } FunctionType;
 
 typedef struct Compiler {
@@ -32,6 +38,7 @@ typedef struct Compiler {
 
     Local locals[UINT8_COUNT];
     int localCount;
+    Upvalue upvalues[UINT8_COUNT];
     int scopeDepth;
 } Compiler;
 
@@ -231,6 +238,44 @@ static int resolveLocal(Compiler* compiler, Token* name) {
     return -1;
 }
 
+static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal,
+                      bool isConst) {
+    int upvalueCount = compiler->function->upvalueCount;
+
+    for (int i = 0; i < upvalueCount; i++) {
+        Upvalue* upvalue = &compiler->upvalues[i];
+        if (upvalue->index == index && upvalue->isLocal == isLocal) return i;
+    }
+
+    if (upvalueCount == UINT8_COUNT) {
+        error("Too many closure variables in function.");
+        return 0;
+    }
+
+    compiler->upvalues[upvalueCount].isLocal = isLocal;
+    compiler->upvalues[upvalueCount].index = index;
+    compiler->upvalues[upvalueCount].isConst = isConst;
+    return compiler->function->upvalueCount++;
+}
+
+static int resolveUpvalue(Compiler* compiler, Token* name) {
+    if (compiler->enclosing == NULL) return -1;
+
+    int local = resolveLocal(compiler->enclosing, name);
+    if (local != -1) {
+        bool isConst = compiler->enclosing->locals[local].isConst;
+        return addUpvalue(compiler, (uint8_t)local, true, isConst);
+    }
+
+    int upvalue = resolveUpvalue(compiler->enclosing, name);
+    if (upvalue != -1) {
+        return addUpvalue(compiler, (uint8_t)upvalue, false,
+                          compiler->enclosing->upvalues[upvalue].isConst);
+    }
+
+    return -1;
+}
+
 static void beginScope() { current->scopeDepth++; }
 
 static void endScope() {
@@ -408,7 +453,6 @@ static void parsePrecedence(Precedence precedence) {
 
 static void namedVariable(Token name, bool canAssign) {
     int arg = resolveLocal(current, &name);
-
     if (arg != -1) {
         // LOCAL
         if (canAssign && match(TOKEN_EQUAL)) {
@@ -419,6 +463,18 @@ static void namedVariable(Token name, bool canAssign) {
             emitBytes(OP_SET_LOCAL, (uint8_t)arg);
         } else {
             emitBytes(OP_GET_LOCAL, (uint8_t)arg);
+        }
+    } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+        // UPVALUE
+        if (canAssign && match(TOKEN_EQUAL)) {
+            if (current->upvalues[arg].isConst) {
+                error("Cannot assign to const variable.");
+            }
+
+            expression();
+            emitBytes(OP_SET_UPVALUE, (uint8_t)arg);
+        } else {
+            emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
         }
     } else {
         // GLOBAL
@@ -575,6 +631,11 @@ static void function(FunctionType type) {
 
     ObjFunction* function = endCompiler();
     emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
+
+    for (int i = 0; i < function->upvalueCount; i++) {
+        emitBytes(compiler.upvalues[i].isLocal ? 1 : 0,
+                  compiler.upvalues[i].index);
+    }
 }
 
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
@@ -867,9 +928,9 @@ static ObjFunction* endCompiler() {
     current = current->enclosing;
 
     if (GET_DEBUG_CODE() && !parser.hadError)
-        disassembleChunk(currentChunk(), function->name != NULL
-                                             ? function->name->chars
-                                             : "<script>");
+        disassembleChunk(&function->chunk, function->name != NULL
+                                               ? function->name->chars
+                                               : "<script>");
 
     return function;
 }
