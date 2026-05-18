@@ -1,0 +1,62 @@
+print "nested";
+
+function outer() {
+    var a = "A";
+
+    function middle() {
+        var b = "B";
+
+        function inner() {
+            print a;
+            print b;
+        }
+
+        return inner;
+    }
+
+    return middle();
+}
+
+var fn = outer();
+fn();
+
+
+print "deep upvalue";
+
+function a() {
+    var x = 10;
+
+    function b() {
+        function c() {
+            print x;
+        }
+
+        return c;
+    }
+
+    return b();
+}
+
+var deep = a();
+deep();
+
+
+print "multi-level return";
+
+function outer2() {
+    var x = "captured";
+
+    function middle() {
+        function inner() {
+            print x;
+        }
+
+        return inner;
+    }
+
+    return middle;
+}
+
+var m = outer2();
+var i = m();
+i();

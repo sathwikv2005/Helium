@@ -1,0 +1,65 @@
+print "counter";
+
+function counter() {
+    var count = 0;
+
+    function increment() {
+        count = count + 1;
+        print count;
+    }
+
+    return increment;
+}
+
+var c = counter();
+
+c();
+c();
+c();
+
+
+print "shared state";
+
+function makeShared() {
+    var count = 0;
+
+    function inc() {
+        count = count + 1;
+        print count;
+    }
+
+    function dec() {
+        count = count - 1;
+        print count;
+    }
+
+    inc();
+    inc();
+    dec();
+    dec();
+}
+
+makeShared();
+
+
+print "independent closures";
+
+function makeCounter() {
+    var x = 0;
+
+    function inc() {
+        x = x + 1;
+        print x;
+    }
+
+    return inc;
+}
+
+var a = makeCounter();
+var b = makeCounter();
+
+a();
+a();
+
+b();
+b();

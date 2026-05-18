@@ -1,0 +1,40 @@
+print "close order";
+
+function outer() {
+    var a = 1;
+    var b = 2;
+
+    function x() {
+        print a;
+        print b;
+    }
+
+    return x;
+}
+
+var fn = outer();
+fn();
+
+
+print "many upvalues";
+
+function many() {
+    var a = 1;
+    var b = 2;
+    var c = 3;
+    var d = 4;
+    var e = 5;
+
+    function inner() {
+        print a;
+        print b;
+        print c;
+        print d;
+        print e;
+    }
+
+    return inner;
+}
+
+var manyFn = many();
+manyFn();

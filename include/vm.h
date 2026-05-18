@@ -41,6 +41,8 @@ typedef struct {
     Table strings;
     Table globals;
 
+    ObjUpvalue* openUpvalues;
+
     Obj* objects;
     Value* stackTop;
 

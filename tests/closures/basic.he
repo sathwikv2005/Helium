@@ -1,0 +1,80 @@
+print "basic closure";
+
+function makePrinter() {
+    var message = "hello";
+
+    function printMessage() {
+        print message;
+    }
+
+    return printMessage;
+}
+
+var printer = makePrinter();
+printer();
+
+
+print "scope exit";
+
+function outer() {
+    var x = 42;
+
+    function inner() {
+        print x;
+    }
+
+    return inner;
+}
+
+var closure = outer();
+closure();
+
+
+print "capture updated variable";
+
+function updated() {
+    var x = 1;
+
+    function inner() {
+        print x;
+    }
+
+    x = 99;
+
+    return inner;
+}
+
+var fn = updated();
+fn();
+
+
+print "shadowing";
+
+var value = "global";
+
+function outerShadow() {
+    var value = "outer";
+
+    function inner() {
+        print value;
+    }
+
+    return inner;
+}
+
+var shadowFn = outerShadow();
+shadowFn();
+
+
+print "parameter capture";
+
+function makeAdder(x) {
+    function add(y) {
+        return x + y;
+    }
+
+    return add;
+}
+
+var add5 = makeAdder(5);
+print add5(10);

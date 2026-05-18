@@ -20,6 +20,7 @@ typedef struct {
     Token name;
     int depth;
     bool isConst;
+    bool isCaptured;
 } Local;
 
 typedef struct {
@@ -216,6 +217,7 @@ static void addLocal(Token name, bool isConst) {
     Local* local = &current->locals[current->localCount++];
     local->name = name;
     local->isConst = isConst;
+    local->isCaptured = false;
     local->depth = -1;
 }
 
@@ -264,6 +266,7 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
     int local = resolveLocal(compiler->enclosing, name);
     if (local != -1) {
         bool isConst = compiler->enclosing->locals[local].isConst;
+        compiler->enclosing->locals[local].isCaptured = true;
         return addUpvalue(compiler, (uint8_t)local, true, isConst);
     }
 
@@ -284,14 +287,20 @@ static void endScope() {
     while (current->localCount > 0 &&
            current->locals[current->localCount - 1].depth >
                current->scopeDepth) {
-        emitByte(OP_POP);
+        if (current->locals[current->localCount - 1].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else
+            emitByte(OP_POP);
         current->localCount--;
     }
 }
 
 static void emitPopToCount(int targetCount) {
     for (int i = current->localCount - 1; i >= targetCount; i--) {
-        emitByte(OP_POP);
+        if (current->locals[i].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else
+            emitByte(OP_POP);
     }
 }
 
@@ -917,6 +926,8 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     // reserve the first slot for VM internal use.
     Local* local = &current->locals[current->localCount++];
     local->depth = 0;
+    local->isCaptured = false;
+    local->isConst = false;
     local->name.start = "";
     local->name.length = 0;
 }

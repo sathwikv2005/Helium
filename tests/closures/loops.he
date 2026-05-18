@@ -1,0 +1,19 @@
+print "loop capture";
+
+var f0;
+var f1;
+var f2;
+
+for (var i = 0; i < 3; i = i + 1) {
+    function test() {
+        print i;
+    }
+
+    if (i == 0) f0 = test;
+    if (i == 1) f1 = test;
+    if (i == 2) f2 = test;
+}
+
+f0();
+f1();
+f2();
