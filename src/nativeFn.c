@@ -107,7 +107,8 @@ static Value stringNative(int argCount, Value* args) {
             switch (OBJ_TYPE(value)) {
                 case OBJ_STRING:
                     return value;  // already a string
-
+                case OBJ_CLOSURE:
+                    return OBJ_VAL(copyString("<fn>", 4));
                 case OBJ_FUNCTION:
                     return OBJ_VAL(copyString("<fn>", 4));
 
