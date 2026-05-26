@@ -938,10 +938,12 @@ static ObjFunction* endCompiler() {
     ObjFunction* function = current->function;
     current = current->enclosing;
 
+#ifdef HELIUM_DEBUG
     if (GET_DEBUG_CODE() && !parser.hadError)
         disassembleChunk(&function->chunk, function->name != NULL
                                                ? function->name->chars
                                                : "<script>");
+#endif
 
     return function;
 }

@@ -170,6 +170,7 @@ static InterpretResult run() {
     } while (false)
 
     while (true) {
+#ifdef HELIUM_DEBUG
         if (GET_DEBUG_TRACE()) {
             printf("Stack=>\t");
             printf("[ ");
@@ -184,6 +185,7 @@ static InterpretResult run() {
                 (int)(ip - frame->closure->function->chunk.code));
             // printf("==+++++++++==\n");
         }
+#endif
 
         uint8_t instruction;
         switch (instruction = READ_BYTE()) {

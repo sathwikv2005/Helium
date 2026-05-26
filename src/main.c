@@ -86,11 +86,17 @@ static void runFile(const char* path) {
 int main(int argc, const char* argv[]) {
     initVM();
 
+#ifdef HELIUM_DEBUG
+
     if (argc == 1) {
         repl();
+
     } else if (argv[1][0] == '-') {
-        fprintf(stderr, "Usage: helium <path> [-d|-dt|-dc]\n");
+        fprintf(stderr,
+                "Usage: helium <path> "
+                "[-d|-dt|-dc|-dsgc|-dlgc]\n");
         exit(64);
+
     } else {
         const char* file = argv[1];
 
@@ -99,19 +105,45 @@ int main(int argc, const char* argv[]) {
 
             if (strcmp(arg, "-d") == 0) {
                 SET_DEBUG();
+
             } else if (strcmp(arg, "-dt") == 0) {
                 SET_DEBUG_TRACE();
+
             } else if (strcmp(arg, "-dc") == 0) {
                 SET_DEBUG_CODE();
+
+            } else if (strcmp(arg, "-dsgc") == 0) {
+                SET_DEBUG_STRESS_GC();
+
+            } else if (strcmp(arg, "-dlgc") == 0) {
+                SET_DEBUG_LOG_GC();
+
             } else {
                 fprintf(stderr, "Unknown flag: %s\n", arg);
-                fprintf(stderr, "Usage: helium <path> [-d|-dt|-dc]\n");
+                fprintf(stderr,
+                        "Usage: helium <path> "
+                        "[-d|-dt|-dc|-dsgc|-dlgc]\n");
                 exit(64);
             }
         }
 
         runFile(file);
     }
+
+#else
+
+    if (argc == 1) {
+        repl();
+
+    } else if (argc == 2) {
+        runFile(argv[1]);
+
+    } else {
+        fprintf(stderr, "Usage: helium <path>\n");
+        exit(64);
+    }
+
+#endif
 
     freeVM();
     return 0;

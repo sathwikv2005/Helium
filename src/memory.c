@@ -1,10 +1,18 @@
 #include "../include/memory.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "../include/debug.h"
 #include "../include/vm.h"
 
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
+#ifdef HELIUM_DEBUG
+    if (newSize > oldSize) {
+        if (GET_DEBUG_STRESS_GC()) collectGarbage();
+    }
+#endif
+
     if (newSize == 0) {
         free(pointer);
         return NULL;
@@ -15,6 +23,10 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 }
 
 static void freeObject(Obj* object) {
+#ifdef HELIUM_DEBUG
+    if (GET_DEBUG_LOG_GC())
+        printf("%p free type %d\n", (void*)object, object->type);
+#endif
     switch (object->type) {
         case OBJ_CLOSURE: {
             ObjClosure* closure = (ObjClosure*)object;
@@ -51,4 +63,14 @@ void freeObjects() {
         freeObject(object);
         object = next;
     }
+}
+
+void collectGarbage() {
+#ifdef HELIUM_DEBUG
+    if (GET_DEBUG_LOG_GC()) printf("------ gc begin\n");
+#endif
+
+#ifdef HELIUM_DEBUG
+    if (GET_DEBUG_LOG_GC()) printf("------ gc end\n");
+#endif
 }
