@@ -126,3 +126,11 @@ bool tableDelete(Table* table, ObjString* key) {
 
     return true;
 }
+
+void markTable(Table* table) {
+    for (int i = 0; i < table->capacity; i++) {
+        Entry* entry = &table->entries[i];
+        makeObject((Obj*)entry->key);
+        markValue(entry->value);
+    }
+}
