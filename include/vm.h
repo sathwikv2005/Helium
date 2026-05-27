@@ -55,6 +55,9 @@ typedef struct {
     ObjUpvalue* openUpvalues;
 
     Obj* objects;
+    int grayCount;
+    int grayCapacity;
+    Obj** grayStack;
     Value* stackTop;
 
     jmp_buf errorJmp;

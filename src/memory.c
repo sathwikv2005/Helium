@@ -24,7 +24,9 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 }
 
 void markObject(Obj* object) {
-    if (object == NULL) return;
+    if (object == NULL || object->isMarked || object->type == OBJ_NATIVE ||
+        object->type == OBJ_STRING)
+        return;
 #ifdef HELIUM_DEBUG
     if (GET_DEBUG_LOG_GC()) {
         printf("%p mark ", (void*)object);
@@ -33,6 +35,14 @@ void markObject(Obj* object) {
     }
 #endif
     object->isMarked = true;
+
+    if (vm.grayCapacity < vm.grayCount + 1) {
+        vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
+        vm.grayStack = realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
+        if (vm.grayStack == NULL) exit(1);
+    }
+
+    vm.grayStack[vm.grayCount++] = object;
 }
 
 void markValue(Value value) {
@@ -81,6 +91,8 @@ void freeObjects() {
         freeObject(object);
         object = next;
     }
+
+    free(vm.grayStack);
 }
 
 static void markRoots() {
