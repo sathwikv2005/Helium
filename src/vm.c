@@ -264,16 +264,37 @@ static InterpretResult run() {
             }
             case OP_DEFINE_GLOBAL: {
                 ObjString* name = READ_STRING();
-                tableSet(&vm.globals, name,
-                         OBJ_VAL(newVariable(peek(0), false)));
-                pop();
+                Value value = peek(0);
+
+                push(OBJ_VAL(name));
+
+                ObjVariable* variable = newVariable(value, false);
+                push(OBJ_VAL(variable));
+
+                tableSet(&vm.globals, name, OBJ_VAL(variable));
+
+                pop();  // variable
+                pop();  // name
+                pop();  // original value
+
                 break;
             }
+
             case OP_DEFINE_GLOBAL_CONST: {
                 ObjString* name = READ_STRING();
-                tableSet(&vm.globals, name,
-                         OBJ_VAL(newVariable(peek(0), true)));
-                pop();
+                Value value = peek(0);
+
+                push(OBJ_VAL(name));
+
+                ObjVariable* variable = newVariable(value, true);
+                push(OBJ_VAL(variable));
+
+                tableSet(&vm.globals, name, OBJ_VAL(variable));
+
+                pop();  // variable
+                pop();  // name
+                pop();  // original value
+
                 break;
             }
             case OP_GET_UPVALUE: {

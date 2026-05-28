@@ -24,9 +24,7 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 }
 
 void markObject(Obj* object) {
-    if (object == NULL || object->isMarked || object->type == OBJ_NATIVE ||
-        object->type == OBJ_STRING)
-        return;
+    if (object == NULL || object->isMarked) return;
 #ifdef HELIUM_DEBUG
     if (GET_DEBUG_LOG_GC()) {
         printf("%p mark ", (void*)object);
@@ -188,6 +186,7 @@ void collectGarbage() {
 
     markRoots();
     traceReferences();
+    tableRemoveWhite(&vm.strings);
     sweep();
 
 #ifdef HELIUM_DEBUG
