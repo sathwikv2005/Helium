@@ -7,12 +7,17 @@
 #include "../include/debug.h"
 #include "../include/vm.h"
 
+#define GC_HEAP_GROW_FACTOR 2
+
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
+    vm.bytesAllocated += newSize - oldSize;
 #ifdef HELIUM_DEBUG
     if (newSize > oldSize) {
         if (GET_DEBUG_STRESS_GC()) collectGarbage();
     }
 #endif
+
+    if (vm.bytesAllocated > vm.nextGC) collectGarbage();
 
     if (newSize == 0) {
         free(pointer);
@@ -181,7 +186,11 @@ static void sweep() {
 
 void collectGarbage() {
 #ifdef HELIUM_DEBUG
-    if (GET_DEBUG_LOG_GC()) printf("------ gc begin\n");
+    size_t before = 0;
+    if (GET_DEBUG_LOG_GC()) {
+        printf("------ gc begin\n");
+        before = vm.bytesAllocated;
+    }
 #endif
 
     markRoots();
@@ -189,7 +198,14 @@ void collectGarbage() {
     tableRemoveWhite(&vm.strings);
     sweep();
 
+    vm.nextGC = vm.bytesAllocated * GC_HEAP_GROW_FACTOR;
+
 #ifdef HELIUM_DEBUG
-    if (GET_DEBUG_LOG_GC()) printf("------ gc end\n");
+    if (GET_DEBUG_LOG_GC()) {
+        printf("------ gc end\n");
+        printf("   collected %zu bytes (from %zu to %zu) next at %zu\n",
+               before - vm.bytesAllocated, before, vm.bytesAllocated,
+               vm.nextGC);
+    }
 #endif
 }
