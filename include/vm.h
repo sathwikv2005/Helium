@@ -63,6 +63,8 @@ typedef struct {
     Obj** grayStack;
     Value* stackTop;
 
+    bool currentGCMark;
+
     jmp_buf errorJmp;
 
     // debug flags

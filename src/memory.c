@@ -29,7 +29,7 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 }
 
 void markObject(Obj* object) {
-    if (object == NULL || object->isMarked) return;
+    if (object == NULL || object->isMarked == vm.currentGCMark) return;
 #ifdef HELIUM_DEBUG
     if (GET_DEBUG_LOG_GC()) {
         printf("%p mark ", (void*)object);
@@ -37,7 +37,7 @@ void markObject(Obj* object) {
         printf("\n");
     }
 #endif
-    object->isMarked = true;
+    object->isMarked = vm.currentGCMark;
 
     if (vm.grayCapacity < vm.grayCount + 1) {
         vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
@@ -166,8 +166,7 @@ static void sweep() {
     Obj* previous = NULL;
     Obj* object = vm.objects;
     while (object != NULL) {
-        if (object->isMarked) {
-            object->isMarked = false;
+        if (object->isMarked == vm.currentGCMark) {
             previous = object;
             object = object->next;
             continue;
@@ -198,6 +197,7 @@ void collectGarbage() {
     tableRemoveWhite(&vm.strings);
     sweep();
 
+    vm.currentGCMark = !vm.currentGCMark;
     vm.nextGC = vm.bytesAllocated * GC_HEAP_GROW_FACTOR;
 
 #ifdef HELIUM_DEBUG

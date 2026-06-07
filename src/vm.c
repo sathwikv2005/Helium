@@ -53,6 +53,7 @@ void initVM() {
     vm.debugFlags = 0;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
+    vm.currentGCMark = true;
     initTable(&vm.globals);
     initTable(&vm.strings);
 
