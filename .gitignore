@@ -1,3 +1,5 @@
+# builds
 *.exe
-*.bat
+
+# local test files
 test.he
