@@ -15,23 +15,99 @@ The project is heavily inspired by the book _Crafting Interpreters_ and serves a
 
 ---
 
+## Examples
+
+```js
+// fib.he
+function fib(n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+
+print fib(10); //55
+```
+
+```js
+// pi.he
+var n = 10000000;
+var step = 1.0 / n;
+var sum = 0.0;
+
+var i = 0;
+while (i < n) {
+    var x = (i + 0.5) * step;
+    sum = sum + 4.0 / (1.0 + x * x);
+    i = i + 1;
+}
+
+var pi = sum * step;
+print pi; //3.14159265358973
+```
+
+---
+
 ## Building
 
-Clone the repository:
+### Windows
 
-```bash
-git clone https://github.com/sathwikv2005/helium.git
-cd helium
+Use the provided build script:
+
+```bat
+build.bat
 ```
 
-Compile:
+For a debug build:
 
-```bash
-gcc src/*.c -o helium
+```bat
+debug_build.bat
 ```
 
-Run:
+### Manual Build
+
+```bash
+gcc src/*.c -o helium -O3
+```
+
+For a debug build:
+
+```bash
+gcc src/*.c -o helium -O3 -DHELIUM_DEBUG
+```
+
+---
+
+## Running
+
+Start the REPL:
 
 ```bash
 ./helium
 ```
+
+Run a script:
+
+```bash
+./helium program.he
+```
+
+---
+
+## Testing
+
+Run the test suite:
+
+```bat
+test.bat
+```
+
+The test suite can also be run directly with Python:
+
+```bash
+python tools/tester.py
+```
+
+---
+
+## Benchmarks
+
+Performance benchmark results comparing Helium with other scripting languages can be found [here](benchmarks/results.md).
