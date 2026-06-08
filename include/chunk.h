@@ -13,6 +13,8 @@ typedef enum {
     OP_POP,
     OP_GET_PROPERTY,
     OP_SET_PROPERTY,
+    OP_SET_INDEX,
+    OP_GET_INDEX,
     OP_GET_GLOBAL,
     OP_SET_GLOBAL,
     OP_GET_UPVALUE,

@@ -348,6 +348,60 @@ static InterpretResult run() {
                 push(value);
                 break;
             }
+            case OP_GET_INDEX: {
+                Value key = pop();
+
+                if (!IS_INSTANCE(peek(0))) {
+                    runtimeError("Only instances and arrays support indexing.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                if (!IS_STRING(key)) {
+                    runtimeError("Field name must be a string.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                ObjInstance* instance = AS_INSTANCE(peek(0));
+
+                Value value;
+                if (tableGet(&instance->fields, AS_STRING(key), &value)) {
+                    pop();
+                    push(value);
+                } else {
+                    pop();
+                    push(NULL_VAL);
+                }
+
+                break;
+            }
+
+            case OP_SET_INDEX: {
+                Value value = peek(0);
+                Value key = peek(1);
+
+                if (!IS_INSTANCE(peek(2))) {
+                    runtimeError("Only instances and arrays support indexing.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                if (!IS_STRING(key)) {
+                    runtimeError("Field name must be a string.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                ObjInstance* instance = AS_INSTANCE(peek(2));
+
+                tableSet(&instance->fields, AS_STRING(key), value);
+
+                pop();  // value
+                pop();  // key
+                pop();  // instance
+
+                push(value);
+
+                break;
+            }
+
             case OP_EQUAL: {
                 Value b = pop();
                 Value a = pop();
