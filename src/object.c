@@ -91,6 +91,9 @@ void printObject(Value value) {
         case OBJ_UPVALUE:
             printf("upvalue");
             break;
+        case OBJ_CLASS:
+            printf("<CLASS %s>", AS_CLASS(value)->name->chars);
+            break;
         case OBJ_CLOSURE:
             printFunction((AS_CLOSURE(value)->function));
             break;
@@ -130,6 +133,12 @@ ObjVariable* newVariable(Value value, bool isConst) {
     var->value = value;
     var->isConst = isConst;
     return var;
+}
+
+ObjClass* newClass(ObjString* name) {
+    ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+    klass->name = name;
+    return klass;
 }
 
 ObjClosure* newClosure(ObjFunction* function) {
