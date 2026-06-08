@@ -1,0 +1,3 @@
+// property access on non-instance
+var x = 123;
+print x.a;

@@ -1,0 +1,26 @@
+class Counter {}
+
+var counter = Counter();
+
+counter.a = 1;
+counter.a = counter.a + 1;
+
+counter.b = 10;
+counter.b = counter.b + 5;
+
+print counter.a;
+print counter.b;
+
+counter.c = "hello";
+print counter.c;
+
+counter.c = "world";
+print counter.c;
+
+var other = Counter();
+other.a = 999;
+
+print counter.a;
+print other.a;
+
+print counter.doesnotexist;

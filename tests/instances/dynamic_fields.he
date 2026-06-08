@@ -1,0 +1,38 @@
+class Counter {}
+
+var counter = Counter();
+
+counter.a = 1;
+counter.b = 3;
+
+counter[string(counter.b)] = "test";
+
+print counter.a + " " + counter.b + " " + counter[string(counter.b)];
+
+var key = "value";
+counter[key] = 123;
+print counter[key];
+
+counter[key] = counter[key] + 1;
+print counter[key];
+
+counter["x"] = "abc";
+print counter["x"];
+
+counter["x"] = "def";
+print counter["x"];
+
+counter["123"] = "number";
+print counter["123"];
+
+var k1 = "foo";
+var k2 = "bar";
+
+counter[k1] = 10;
+counter[k2] = 20;
+
+print counter[k1];
+print counter[k2];
+
+var same = "foo";
+print counter[same];
