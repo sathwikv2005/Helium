@@ -110,6 +110,17 @@ static bool callValue(Value callee, int argCount) {
     return false;
 }
 
+static bool bindMethod(ObjClass* klass, ObjString* name) {
+    Value method;
+    if (!tableGet(&klass->methods, name, &method)) {
+        return false;
+    }
+    ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(method));
+    pop();
+    push(OBJ_VAL(bound));
+    return true;
+}
+
 static ObjUpvalue* captureUpvalue(Value* local) {
     ObjUpvalue* prevUpvalue = NULL;
     ObjUpvalue* upvalue = vm.openUpvalues;
@@ -337,7 +348,7 @@ static InterpretResult run() {
 
                 if (tableGet(&instance->fields, name, &value)) {
                     push(value);
-                } else {
+                } else if (!bindMethod(instance->klass, name)) {
                     push(NULL_VAL);  // return null as default
                 }
 

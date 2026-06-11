@@ -91,6 +91,9 @@ void printObject(Value value) {
         case OBJ_UPVALUE:
             printf("upvalue");
             break;
+        case OBJ_BOUND_METHOD:
+            printFunction(AS_BOUND_METHOD(value)->method->function);
+            break;
         case OBJ_CLASS:
             printf("<CLASS %s>", AS_CLASS(value)->name->chars);
             break;
@@ -135,6 +138,14 @@ ObjVariable* newVariable(Value value, bool isConst) {
     var->value = value;
     var->isConst = isConst;
     return var;
+}
+
+ObjBoundMethod* newBoundMethod(Value reciever, ObjClosure* method) {
+    ObjBoundMethod* boundMethod =
+        ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+    boundMethod->receiver = reciever;
+    boundMethod->method = method;
+    return boundMethod;
 }
 
 ObjClass* newClass(ObjString* name) {
