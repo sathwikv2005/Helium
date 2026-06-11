@@ -1,0 +1,9 @@
+class Test {
+    init() {
+        this.value = 123;
+    }
+}
+
+var t = Test();
+
+t.value();

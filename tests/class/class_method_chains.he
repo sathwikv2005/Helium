@@ -1,0 +1,13 @@
+class Math {
+    double(x) {
+        return x * 2;
+    }
+
+    quadruple(x) {
+        return this.double(this.double(x));
+    }
+}
+
+var m = Math();
+
+print m.quadruple(5);

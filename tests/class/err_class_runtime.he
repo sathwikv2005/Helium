@@ -1,0 +1,11 @@
+class Test {
+    init(a) {
+        this.a = a;
+    }
+
+    hello() {
+        print "hello";
+    }
+}
+
+Test();

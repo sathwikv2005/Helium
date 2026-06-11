@@ -1,0 +1,9 @@
+class Empty {
+    hello() {
+        print "hello";
+    }
+}
+
+var e = Empty();
+
+e.hello();

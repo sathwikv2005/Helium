@@ -1,0 +1,15 @@
+class Test {
+    init(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    sum() {
+        return this.a + this.b;
+    }
+}
+
+var t = Test(10, 20);
+
+print t.sum();
+print t;
