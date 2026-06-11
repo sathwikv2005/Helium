@@ -92,6 +92,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
             return constantInstruction("OP_GET_PROTERTY", chunk, offset);
         case OP_SET_PROPERTY:
             return constantInstruction("OP_SET_PROPERTY", chunk, offset);
+        case OP_GET_INDEX:
+            return simpleInstruction("OP_GET_INDEX", offset);
+        case OP_SET_INDEX:
+            return simpleInstruction("OP_SET_INDEX", offset);
         case OP_GET_UPVALUE:
             return byteInstruction("OP_GET_UPVALUE", chunk, offset);
         case OP_SET_UPVALUE:
