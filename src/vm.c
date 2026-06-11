@@ -97,6 +97,10 @@ static bool callValue(Value callee, int argCount) {
                 push(result);
                 return true;
             }
+            case OBJ_BOUND_METHOD: {
+                ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
+                return call(bound->method, argCount);
+            }
             case OBJ_CLASS: {
                 ObjClass* klass = AS_CLASS(callee);
                 vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
@@ -105,6 +109,9 @@ static bool callValue(Value callee, int argCount) {
             default:
                 break;  // Non-callable object type.
         }
+    } else if (IS_NULL(callee)) {
+        runtimeError("Can not call a null value.");
+        return false;
     }
     runtimeError("Can only call functions and classes.");
     return false;
