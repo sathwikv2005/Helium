@@ -99,6 +99,7 @@ void printObject(Value value) {
             break;
         case OBJ_INSTANCE:
             printf("<%s>", AS_INSTANCE(value)->klass->name->chars);
+            break;
         case OBJ_CLOSURE:
             printFunction((AS_CLOSURE(value)->function));
             break;
