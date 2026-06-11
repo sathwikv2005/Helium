@@ -57,10 +57,14 @@ void initVM() {
     initTable(&vm.globals);
     initTable(&vm.strings);
 
+    vm.initString = NULL;
+    vm.initString = copyString("init", 4);
+
     mapNatives();
 }
 
 void freeVM() {
+    vm.initString = NULL;
     freeObjects();
     freeTable(&vm.strings);
     freeTable(&vm.globals);
@@ -105,6 +109,15 @@ static bool callValue(Value callee, int argCount) {
             case OBJ_CLASS: {
                 ObjClass* klass = AS_CLASS(callee);
                 vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+                Value initializer;
+                if (tableGet(&klass->methods, vm.initString, &initializer)) {
+                    return call(AS_CLOSURE(initializer), argCount);
+                } else if (argCount != 0) {
+                    runtimeError(
+                        "Initializer %s() expects 0 arguments but got %d.",
+                        klass->name->chars, argCount);
+                    return false;
+                }
                 return true;
             }
             default:

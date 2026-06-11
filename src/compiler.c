@@ -30,7 +30,12 @@ typedef struct {
     bool isConst;
 } Upvalue;
 
-typedef enum { TYPE_FUNCTION, TYPE_METHOD, TYPE_SCRIPT } FunctionType;
+typedef enum {
+    TYPE_FUNCTION,
+    TYPE_METHOD,
+    TYPE_SCRIPT,
+    TYPE_INITIALIZER
+} FunctionType;
 
 typedef struct Compiler {
     struct Compiler* enclosing;
@@ -202,7 +207,10 @@ static void patchJump(int offset) {
 }
 
 static void emitReturn() {
-    emitByte(OP_NULL);
+    if (current->type == TYPE_INITIALIZER) {
+        emitBytes(OP_GET_LOCAL, 0);
+    } else
+        emitByte(OP_NULL);
     emitByte(OP_RETURN);
 }
 
@@ -692,6 +700,10 @@ static void method() {
     consume(TOKEN_IDENTIFIER, "Expect method name.");
     uint8_t constant = identifierConstant(&parser.previous);
     FunctionType type = TYPE_METHOD;
+    if (parser.previous.length == 4 &&
+        memcmp(parser.previous.start, "init", 4) == 0) {
+        type = TYPE_INITIALIZER;
+    }
     function(type);
     emitBytes(OP_METHOD, constant);
 }
@@ -916,6 +928,9 @@ static void returnStatement() {
     if (match(TOKEN_SEMICOLON)) {
         emitReturn();
     } else {
+        if (current->type == TYPE_INITIALIZER) {
+            error("Can't return a value from an initializer.");
+        }
         expression();
         consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
         emitByte(OP_RETURN);
