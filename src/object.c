@@ -109,6 +109,9 @@ void printObject(Value value) {
         case OBJ_NATIVE:
             printf("<native fn>");
             break;
+        case OBJ_VARIABLE:
+            printf("Variable");
+            break;
     }
 }
 
