@@ -518,12 +518,22 @@ static InterpretResult run() {
                 BINARY_OP(NUMBER_VAL, *);
                 break;
             case OP_DIVIDE:
+                if (IS_NUMBER(peek(0)) && AS_NUMBER(peek(0)) == 0) {
+                    frame->ip = ip;
+                    runtimeError("Division by zero.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
                 BINARY_OP(NUMBER_VAL, /);
                 break;
             case OP_MODULO: {
                 if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
                     frame->ip = ip;
                     runtimeError("Operands must be numbers.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                if (AS_NUMBER(peek(0)) == 0) {
+                    frame->ip = ip;
+                    runtimeError("Modulo by zero.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
 
