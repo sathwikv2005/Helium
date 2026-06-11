@@ -103,7 +103,11 @@ static void blackenObject(Obj* object) {
             }
             break;
         }
-
+        case OBJ_VARIABLE: {
+            ObjVariable* variable = (ObjVariable*)object;
+            markValue(variable->value);
+            break;
+        }
         case OBJ_NATIVE:
         case OBJ_STRING:
             break;
@@ -156,6 +160,9 @@ static void freeObject(Obj* object) {
         }
         case OBJ_NATIVE:
             FREE(ObjNative, object);
+            break;
+        case OBJ_VARIABLE:
+            FREE(ObjVariable, object);
             break;
     }
 }
