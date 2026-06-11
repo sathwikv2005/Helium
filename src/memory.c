@@ -11,13 +11,14 @@
 
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
     vm.bytesAllocated += newSize - oldSize;
+
 #ifdef HELIUM_DEBUG
     if (newSize > oldSize) {
         if (GET_DEBUG_STRESS_GC()) collectGarbage();
     }
 #endif
 
-    if (vm.bytesAllocated > vm.nextGC) collectGarbage();
+    if (newSize > oldSize && vm.bytesAllocated > vm.nextGC) collectGarbage();
 
     if (newSize == 0) {
         free(pointer);
