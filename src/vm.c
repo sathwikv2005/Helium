@@ -351,11 +351,12 @@ static InterpretResult run() {
                 ObjString* name = READ_STRING();
 
                 Value value;
-                pop();
 
                 if (tableGet(&instance->fields, name, &value)) {
+                    pop();
                     push(value);
                 } else if (!bindMethod(instance->klass, name)) {
+                    pop();
                     push(NULL_VAL);  // return null as default
                 }
 
