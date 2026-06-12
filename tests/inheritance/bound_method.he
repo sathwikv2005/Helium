@@ -1,0 +1,15 @@
+class Animal {
+    init(name) {
+        this.name = name;
+    }
+
+    speak() {
+        print this.name;
+    }
+}
+
+class Dog < Animal {}
+
+var fn = Dog("Haru").speak;
+
+fn();

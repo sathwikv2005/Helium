@@ -1,0 +1,33 @@
+class Animal {
+    speak() {
+        print "animal";
+    }
+}
+
+class Dog < Animal {
+    speak() {
+        print "dog";
+    }
+}
+
+Dog().speak();
+
+class A {
+    init(name) {
+        this.name = name;
+    }
+}
+
+class D < A {
+    init(name, age) {
+        super.init(name);
+        this.age = age;
+    }
+
+    show() {
+        print this.name;
+        print this.age;
+    }
+}
+
+D("Haru", 5).show();

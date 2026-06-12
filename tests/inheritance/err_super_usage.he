@@ -1,0 +1,7 @@
+class Test {
+    method() {
+        super.method();
+    }
+}
+
+super.test();

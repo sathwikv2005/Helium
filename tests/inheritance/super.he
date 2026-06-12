@@ -1,0 +1,36 @@
+class Animal {
+    speak() {
+        print "animal";
+    }
+}
+
+class Dog < Animal {
+    speak() {
+        super.speak();
+        print "dog";
+    }
+}
+
+Dog().speak();
+
+class A {
+    test() {
+        print "A";
+    }
+}
+
+class B < A {
+    test() {
+        super.test();
+        print "B";
+    }
+}
+
+class C < B {
+    test() {
+        super.test();
+        print "C";
+    }
+}
+
+C().test();
