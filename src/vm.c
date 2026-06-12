@@ -133,7 +133,18 @@ static bool callValue(Value callee, int argCount) {
 
 static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
     Value method;
-    if (!tableGet(&klass->methods, name, &method)) {
+    if (name == vm.initString) {
+        if (klass->initializer == NULL) {
+            if (argCount != 0) {
+                runtimeError(
+                    "Superclass has no initializer accepting %d arguments.",
+                    argCount);
+                return false;
+            }
+            return true;  // do nothing
+        }
+        return call(klass->initializer, argCount);
+    } else if (!tableGet(&klass->methods, name, &method)) {
         runtimeError("Undefined property '%s'.", name->chars);
         return false;
     }
@@ -484,7 +495,40 @@ static InterpretResult run() {
 
                 break;
             }
+            case OP_INHERIT: {
+                Value superclass = peek(1);
+                if (!IS_CLASS(superclass)) {
+                    frame->ip = ip;
+                    runtimeError("Superclass must be a class.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjClass* subclass = AS_CLASS(peek(0));
+                tableAddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
+                subclass->initializer = AS_CLASS(superclass)->initializer;
+                pop();  // subclass
+                break;
+            }
+            case OP_GET_SUPER: {
+                ObjString* name = READ_STRING();
+                ObjClass* superclass = AS_CLASS(pop());
 
+                if (!bindMethod(superclass, name)) {
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
+            case OP_SUPER_INVOKE: {
+                ObjString* method = READ_STRING();
+                int argCount = READ_BYTE();
+                ObjClass* superclass = AS_CLASS(pop());
+                if (!invokeFromClass(superclass, method, argCount)) {
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                frame->ip = ip;
+                frame = &vm.frames[vm.frameCount - 1];
+                ip = frame->ip;
+                break;
+            }
             case OP_EQUAL: {
                 Value b = pop();
                 Value a = pop();
