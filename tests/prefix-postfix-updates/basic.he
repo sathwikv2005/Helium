@@ -1,0 +1,64 @@
+var x = 1;
+
+print ++x; 
+print x;   
+
+
+print --x; 
+print x;   
+
+var x = 1;
+
+print x++; 
+print x;   
+
+print x--; 
+print x;   
+
+
+print ++x + 10; 
+print x;       
+
+print --x + 10;
+print x;       
+
+var x = 5;
+
+print (++x) * 2; 
+print x;        
+
+var x = 5;
+
+print (x++) * 2; 
+print x;        
+
+var x = 5;
+
+print (--x) * 2; 
+print x;        
+
+var x = 5;
+
+print (x--) * 2; 
+print x;         
+
+
+var x = 1;
+
+print ++x + ++x;
+print x;
+
+var x = 1;
+print x++ + x++;
+print x;
+
+class Test{}
+var test = Test();
+test["a"] = 10;
+print ++test["a"];
+print test["a"]++;
+test["11"] = 10;
+var x = "1";
+
+print ++test[++x];
+print test[x++]++;

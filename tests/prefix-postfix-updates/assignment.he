@@ -1,0 +1,23 @@
+var x = 1;
+var y = ++x;
+
+print y; // 2
+print x; // 2
+
+var x = 1;
+var y = --x;
+
+print y; // 0
+print x; // 0
+
+var x = 1;
+var y = x++;
+
+print y; // 1
+print x; // 2
+
+var x = 1;
+var y = x--;
+
+print y; // 1
+print x; // 0
