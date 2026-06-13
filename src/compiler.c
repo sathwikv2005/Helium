@@ -31,6 +31,39 @@ typedef struct {
 } Upvalue;
 
 typedef enum {
+    UPDATE_NONE,
+    UPDATE_PREFIX_INC,
+    UPDATE_PREFIX_DEC,
+    UPDATE_POSTFIX_INC,
+    UPDATE_POSTFIX_DEC
+} UpdateType;
+typedef enum {
+    UPDATE_TARGET_NONE,
+    UPDATE_TARGET_VARIABLE,
+    UPDATE_TARGET_PROPERTY,
+    UPDATE_TARGET_INDEX
+} UpdateTarget;
+
+typedef struct {
+    UpdateType currentUpdate;
+    UpdateTarget target;
+
+    uint8_t getOp;
+    uint8_t setOp;
+    uint8_t arg;
+
+    uint8_t ownerGetOp;
+    uint8_t ownerArg;
+
+    uint8_t className;
+    uint8_t classGetOp;
+
+    bool isConst;
+} UpdateState;
+
+UpdateState updateState;
+
+typedef enum {
     TYPE_FUNCTION,
     TYPE_METHOD,
     TYPE_SCRIPT,
@@ -104,6 +137,11 @@ Compiler* current = NULL;
 ClassCompiler* currentClass = NULL;
 
 static Chunk* currentChunk() { return &current->function->chunk; }
+
+void resetUpdateState() {
+    updateState.target = UPDATE_TARGET_NONE;
+    updateState.currentUpdate = UPDATE_NONE;
+}
 
 static void errorAt(Token* token, const char* message) {
     if (parser.panicMode) return;
@@ -494,28 +532,180 @@ static uint8_t argumentList() {
     return argCount;
 }
 
+static TokenType matchAssignmentOperator() {
+    switch (parser.current.type) {
+        case TOKEN_EQUAL:
+        case TOKEN_PLUS_EQUAL:
+        case TOKEN_MINUS_EQUAL:
+        case TOKEN_STAR_EQUAL:
+        case TOKEN_SLASH_EQUAL:
+        case TOKEN_PERCENT_EQUAL: {
+            TokenType type = parser.current.type;
+            advance();
+            return type;
+        }
+
+        default:
+            return TOKEN_ERROR;
+    }
+}
+
+static void emitOpByte(uint8_t op) {
+    switch (op) {
+        case TOKEN_PLUS_EQUAL:
+            emitByte(OP_ADD);
+            break;
+
+        case TOKEN_MINUS_EQUAL:
+            emitByte(OP_SUBTRACT);
+            break;
+        case TOKEN_STAR_EQUAL:
+            emitByte(OP_MULTIPLY);
+            break;
+        case TOKEN_SLASH_EQUAL:
+            emitByte(OP_DIVIDE);
+            break;
+        case TOKEN_PERCENT_EQUAL:
+            emitByte(OP_MODULO);
+            break;
+        case TOKEN_EQUAL:
+        default:
+            break;
+    }
+}
+
+static void emitSetBytes(uint8_t setOp, uint8_t getOp, uint8_t arg,
+                         TokenType assignOp) {
+    if (assignOp != TOKEN_EQUAL) {
+        emitBytes(getOp, arg);
+    }
+    if (assignOp == TOKEN_PLUS_PLUS || assignOp == TOKEN_MINUS_MINUS) {
+        emitByte(OP_DUP);
+        emitConstant(NUMBER_VAL(1));
+    } else {
+        expression();
+    }
+    emitOpByte(assignOp);
+    emitBytes(setOp, (uint8_t)arg);
+    if (assignOp == TOKEN_PLUS_PLUS || assignOp == TOKEN_MINUS_MINUS)
+        emitByte(OP_POP);
+}
+
+static void emitUpdateBytes() {
+    if (updateState.currentUpdate == UPDATE_NONE) return;
+    if (updateState.isConst) {
+        error("Cannot assign to const variable.");
+    }
+    emitConstant(NUMBER_VAL(1));
+
+    if (updateState.currentUpdate == UPDATE_PREFIX_INC ||
+        updateState.currentUpdate == UPDATE_POSTFIX_INC)
+        emitByte(OP_ADD);
+    else
+        emitByte(OP_SUBTRACT);
+}
+
+static void emitPrefixUpdate() {
+    emitUpdateBytes();
+    emitBytes(updateState.setOp, updateState.arg);
+    updateState.currentUpdate = UPDATE_NONE;
+}
+
+static void emitPrefixPropertyUpdate() {
+    emitByte(OP_DUP);
+    emitBytes(OP_GET_PROPERTY, updateState.arg);
+    emitUpdateBytes();
+    emitBytes(OP_SET_PROPERTY, updateState.arg);
+    updateState.currentUpdate = UPDATE_NONE;
+}
+static void emitPrefixIndexUpdate() {
+    emitByte(OP_DUP2);
+    emitByte(OP_GET_INDEX);
+    emitUpdateBytes();
+    emitByte(OP_SET_INDEX);
+    updateState.currentUpdate = UPDATE_NONE;
+}
+
+static void emitPostFixUpdate() {
+    emitByte(OP_DUP);
+    emitUpdateBytes();
+    emitBytes(updateState.setOp, updateState.arg);
+    emitByte(OP_POP);
+    updateState.currentUpdate = UPDATE_NONE;
+}
+
+static void emitPostFixPropertyUpdate() {
+    emitBytes(updateState.classGetOp, updateState.className);
+    emitBytes(OP_SWAP, 0);
+    emitByte(OP_DUP);
+    emitBytes(OP_SWAP, 1);
+    emitUpdateBytes();
+    emitBytes(OP_SET_PROPERTY, updateState.arg);
+    emitByte(OP_POP);
+    updateState.currentUpdate = UPDATE_NONE;
+}
+static void emitPostFixIndexUpdate() {
+    emitByte(OP_DUP2);
+    emitByte(OP_GET_INDEX);
+    emitByte(OP_DUP);
+    emitBytes(OP_SWAP, 1);
+    emitBytes(OP_SWAP, 2);
+    emitUpdateBytes();
+    emitByte(OP_SET_INDEX);
+    emitByte(OP_POP);
+    updateState.currentUpdate = UPDATE_NONE;
+}
+
 static void namedVariable(Token name, bool canAssign) {
     int arg = resolveLocal(current, &name);
+
+    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
     if (arg != -1) {
         // LOCAL
-        if (canAssign && match(TOKEN_EQUAL)) {
+        if (current->locals[arg].isConst) {
+            updateState.isConst = true;
+        }
+        updateState.setOp = OP_SET_LOCAL;
+        updateState.getOp = OP_GET_LOCAL;
+        updateState.arg = arg;
+        updateState.className = arg;
+        updateState.classGetOp = OP_GET_LOCAL;
+
+        updateState.target = UPDATE_TARGET_VARIABLE;
+        if (updateState.currentUpdate != UPDATE_NONE) {
+            emitBytes(OP_GET_LOCAL, arg);
+            return;
+        }
+        if (canAssign && assignOp != TOKEN_ERROR) {
             if (current->locals[arg].isConst) {
                 error("Cannot assign to const variable.");
             }
-            expression();
-            emitBytes(OP_SET_LOCAL, (uint8_t)arg);
+            emitSetBytes(OP_SET_LOCAL, OP_GET_LOCAL, arg, assignOp);
         } else {
             emitBytes(OP_GET_LOCAL, (uint8_t)arg);
         }
     } else if ((arg = resolveUpvalue(current, &name)) != -1) {
         // UPVALUE
-        if (canAssign && match(TOKEN_EQUAL)) {
+        if (current->locals[arg].isConst) {
+            updateState.isConst = true;
+        }
+        updateState.getOp = OP_GET_UPVALUE;
+        updateState.setOp = OP_SET_UPVALUE;
+        updateState.target = UPDATE_TARGET_VARIABLE;
+
+        updateState.arg = arg;
+        updateState.className = arg;
+        updateState.classGetOp = OP_GET_UPVALUE;
+        if (updateState.currentUpdate != UPDATE_NONE) {
+            emitBytes(OP_GET_UPVALUE, arg);
+            return;
+        }
+        if (canAssign && assignOp != TOKEN_ERROR) {
             if (current->upvalues[arg].isConst) {
                 error("Cannot assign to const variable.");
             }
 
-            expression();
-            emitBytes(OP_SET_UPVALUE, (uint8_t)arg);
+            emitSetBytes(OP_SET_UPVALUE, OP_GET_UPVALUE, arg, assignOp);
         } else {
             emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
         }
@@ -523,9 +713,20 @@ static void namedVariable(Token name, bool canAssign) {
         // GLOBAL
         arg = identifierConstant(&name);
 
-        if (canAssign && match(TOKEN_EQUAL)) {
-            expression();
-            emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+        updateState.getOp = OP_GET_GLOBAL;
+        updateState.setOp = OP_SET_GLOBAL;
+        updateState.target = UPDATE_TARGET_VARIABLE;
+
+        updateState.arg = arg;
+        updateState.className = arg;
+        updateState.classGetOp = OP_GET_GLOBAL;
+        if (updateState.currentUpdate != UPDATE_NONE) {
+            emitBytes(OP_GET_GLOBAL, arg);
+            return;
+        }
+
+        if (canAssign && assignOp != TOKEN_ERROR) {
+            emitSetBytes(OP_SET_GLOBAL, OP_GET_GLOBAL, arg, assignOp);
         } else {
             emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
         }
@@ -604,9 +805,25 @@ static void dot(bool canAssign) {
     consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
     uint8_t name = identifierConstant(&parser.previous);
 
-    if (canAssign && match(TOKEN_EQUAL)) {
+    updateState.target = UPDATE_TARGET_PROPERTY;
+    updateState.arg = name;
+    if (updateState.currentUpdate != UPDATE_NONE) {
+        return;
+    }
+
+    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
+
+    if (assignOp != TOKEN_ERROR) {
+        if (assignOp != TOKEN_EQUAL) {
+            emitByte(OP_DUP);
+            emitBytes(OP_GET_PROPERTY, name);
+        }
+
         expression();
+
+        emitOpByte(assignOp);
         emitBytes(OP_SET_PROPERTY, name);
+
     } else if (match(TOKEN_LEFT_PAREN)) {
         uint8_t argCount = argumentList();
         emitBytes(OP_INVOKE, name);
@@ -619,14 +836,126 @@ static void instanceIndex(bool canAssign) {
     expression();
     consume(TOKEN_RIGHT_SQUARE, "Expect ']' after index.");
 
-    if (canAssign && match(TOKEN_EQUAL)) {
+    updateState.target = UPDATE_TARGET_INDEX;
+    if (updateState.currentUpdate != UPDATE_NONE) {
+        return;
+    }
+
+    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
+
+    if (assignOp != TOKEN_ERROR) {
+        if (assignOp != TOKEN_EQUAL) {
+            emitByte(OP_DUP2);
+            emitByte(OP_GET_INDEX);
+        }
+
         expression();
+
+        emitOpByte(assignOp);
         emitByte(OP_SET_INDEX);
-    } else {
+
+    } else if (parser.current.type != TOKEN_PLUS_PLUS &&
+               parser.current.type != TOKEN_MINUS_MINUS) {
         emitByte(OP_GET_INDEX);
     }
 }
 
+static void prefixIncrement(bool canAssign) {
+    if (parser.current.type != TOKEN_IDENTIFIER) {
+        error("Invalid increment target.");
+    }
+    UpdateState old = updateState;
+    updateState.currentUpdate = UPDATE_PREFIX_INC;
+    parsePrecedence(PREC_UNARY);
+
+    switch (updateState.target) {
+        case UPDATE_TARGET_VARIABLE:
+            emitPrefixUpdate();
+            break;
+
+        case UPDATE_TARGET_PROPERTY:
+            emitPrefixPropertyUpdate();
+            break;
+
+        case UPDATE_TARGET_INDEX:
+            emitPrefixIndexUpdate();
+            break;
+
+        default:
+            error("Invalid increment target.");
+    }
+    updateState = old;
+}
+
+static void prefixDecrement(bool canAssign) {
+    if (parser.current.type != TOKEN_IDENTIFIER)
+        error("Invalid increment target.");
+    UpdateState old = updateState;
+    updateState.currentUpdate = UPDATE_PREFIX_DEC;
+    parsePrecedence(PREC_UNARY);
+    switch (updateState.target) {
+        case UPDATE_TARGET_VARIABLE:
+            emitPrefixUpdate();
+            break;
+
+        case UPDATE_TARGET_PROPERTY:
+            emitPrefixPropertyUpdate();
+            break;
+
+        case UPDATE_TARGET_INDEX:
+            emitPrefixIndexUpdate();
+            break;
+
+        default:
+            error("Invalid increment target.");
+    }
+    updateState = old;
+}
+
+static void postFixIncrement(bool canAssign) {
+    UpdateState old = updateState;
+    updateState.currentUpdate = UPDATE_POSTFIX_INC;
+
+    switch (updateState.target) {
+        case UPDATE_TARGET_VARIABLE:
+            emitPostFixUpdate();
+            break;
+
+        case UPDATE_TARGET_PROPERTY:
+            emitPostFixPropertyUpdate();
+            break;
+
+        case UPDATE_TARGET_INDEX:
+            emitPostFixIndexUpdate();
+            break;
+
+        default:
+            error("Invalid increment target.");
+    }
+    updateState = old;
+}
+static void postFixDecrement(bool canAssign) {
+    UpdateState old = updateState;
+    updateState.currentUpdate = UPDATE_POSTFIX_DEC;
+
+    switch (updateState.target) {
+        case UPDATE_TARGET_VARIABLE:
+            emitPostFixUpdate();
+            break;
+
+        case UPDATE_TARGET_PROPERTY:
+            emitPostFixPropertyUpdate();
+            break;
+
+        case UPDATE_TARGET_INDEX:
+            emitPostFixIndexUpdate();
+            break;
+
+        default:
+            error("Invalid increment target.");
+    }
+    updateState = old;
+}
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, call, PREC_CALL},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
@@ -651,6 +980,13 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL] = {NULL, binary, PREC_COMPARISON},
+    [TOKEN_PLUS_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_MINUS_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_STAR_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_PLUS_PLUS] = {prefixIncrement, postFixIncrement, PREC_CALL},
+    [TOKEN_MINUS_MINUS] = {prefixDecrement, postFixDecrement, PREC_CALL},
+    [TOKEN_SLASH_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_PERCENT_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
@@ -1084,6 +1420,8 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
         local->name.start = "";
         local->name.length = 0;
     }
+
+    resetUpdateState();
 }
 
 static ObjFunction* endCompiler() {

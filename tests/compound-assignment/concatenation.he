@@ -1,0 +1,13 @@
+var s = "Hello";
+
+s += " World";
+print s;
+
+var x = 5;
+x+=" test";
+print x;
+
+var y = "5";
+
+y += 10;
+print y;

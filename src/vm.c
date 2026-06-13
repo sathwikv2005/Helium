@@ -674,6 +674,16 @@ static InterpretResult run() {
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
+            case OP_DUP:
+                push(peek(0));
+                break;
+            case OP_DUP2:
+                push(peek(1));
+                push(peek(1));
+                break;
+            case OP_SWAP:
+                swap(READ_BYTE());
+                break;
             default:
                 break;
         }
@@ -710,6 +720,17 @@ void push(Value value) {
         runtimeError("Stack overflow error.");
     }
     *vm.stackTop++ = value;
+}
+
+void swap(uint8_t offset) {
+    if ((size_t)(vm.stackTop - vm.stack) < (size_t)offset + 2) {
+        runtimeError("Stack underflow error.");
+        return;
+    }
+
+    Value temp = vm.stackTop[-1 - offset];
+    vm.stackTop[-1 - offset] = vm.stackTop[-2 - offset];
+    vm.stackTop[-2 - offset] = temp;
 }
 
 Value pop() {

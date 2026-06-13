@@ -1,0 +1,19 @@
+class Test {}
+
+var obj = Test();
+obj.x = 10;
+
+obj.x += 5;
+
+print obj.x;
+
+obj.name = "Hel";
+
+obj.name += "ium";
+
+print obj.name;
+
+obj["x"] = 10;
+obj["x"] += 5;
+
+print obj["x"];
