@@ -84,6 +84,7 @@ void initVM();
 void freeVM();
 InterpretResult interpret(const char* source);
 void push(Value value);
+void swap(uint8_t offset);
 Value pop();
 
 void runtimeError(const char* format, ...);
