@@ -671,9 +671,17 @@ static void dot(bool canAssign) {
             emitBytes(OP_GET_PROPERTY, name);
         }
 
-        expression();
+        if (assignOp != TOKEN_MINUS_MINUS && assignOp != TOKEN_PLUS_PLUS) {
+            expression();
+        } else {
+            emitByte(OP_DUP);
+            emitBytes(OP_SWAP, 1);
+            emitConstant(NUMBER_VAL(1));
+        }
         emitOpByte(assignOp);
         emitBytes(OP_SET_PROPERTY, name);
+        if (assignOp == TOKEN_MINUS_MINUS || assignOp == TOKEN_PLUS_PLUS)
+            emitByte(OP_POP);
     } else if (match(TOKEN_LEFT_PAREN)) {
         uint8_t argCount = argumentList();
         emitBytes(OP_INVOKE, name);
@@ -693,9 +701,18 @@ static void instanceIndex(bool canAssign) {
             emitByte(OP_DUP2);
             emitByte(OP_GET_INDEX);
         }
-        expression();
+        if (assignOp != TOKEN_MINUS_MINUS && assignOp != TOKEN_PLUS_PLUS) {
+            expression();
+        } else {
+            emitByte(OP_DUP);
+            emitBytes(OP_SWAP, 1);
+            emitBytes(OP_SWAP, 2);
+            emitConstant(NUMBER_VAL(1));
+        }
         emitOpByte(assignOp);
         emitByte(OP_SET_INDEX);
+        if (assignOp == TOKEN_MINUS_MINUS || assignOp == TOKEN_PLUS_PLUS)
+            emitByte(OP_POP);
     } else {
         emitByte(OP_GET_INDEX);
     }
@@ -728,8 +745,8 @@ ParseRule rules[] = {
     [TOKEN_PLUS_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_MINUS_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_STAR_EQUAL] = {NULL, NULL, PREC_NONE},
-    [TOKEN_PLUS_PLUS] = {NULL, NULL, PREC_NONE},
-    [TOKEN_MINUS_MINUS] = {NULL, NULL, PREC_NONE},
+    [TOKEN_PLUS_PLUS] = {NULL, NULL, PREC_UNARY},
+    [TOKEN_MINUS_MINUS] = {NULL, NULL, PREC_UNARY},
     [TOKEN_SLASH_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_PERCENT_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
