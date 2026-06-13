@@ -35,6 +35,8 @@ typedef enum {
     TOKEN_STAR_EQUAL,
     TOKEN_SLASH_EQUAL,
     TOKEN_PERCENT_EQUAL,
+    TOKEN_PLUS_PLUS,
+    TOKEN_MINUS_MINUS,
 
     // Literals.
     TOKEN_IDENTIFIER,

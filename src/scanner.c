@@ -231,10 +231,19 @@ Token scanToken() {
             return makeToken(TOKEN_COMMA);
         case '.':
             return makeToken(TOKEN_DOT);
-        case '-':
-            return makeToken(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
         case '+':
+            if (peek() == '+') {
+                advance();
+                return makeToken(TOKEN_PLUS_PLUS);
+            }
             return makeToken(match('=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
+
+        case '-':
+            if (peek() == '-') {
+                advance();
+                return makeToken(TOKEN_MINUS_MINUS);
+            }
+            return makeToken(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
         case '/':
             return makeToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
         case '*':
