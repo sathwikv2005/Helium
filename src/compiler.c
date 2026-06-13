@@ -657,79 +657,49 @@ static void emitPostFixIndexUpdate() {
 }
 
 static void namedVariable(Token name, bool canAssign) {
-    int arg = resolveLocal(current, &name);
+    int arg;
+    uint8_t getOp;
+    uint8_t setOp;
+    bool isConst = false;
 
     TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
-    if (arg != -1) {
-        // LOCAL
-        if (current->locals[arg].isConst) {
-            updateState.isConst = true;
-        }
-        updateState.setOp = OP_SET_LOCAL;
-        updateState.getOp = OP_GET_LOCAL;
-        updateState.arg = arg;
-        updateState.className = arg;
-        updateState.classGetOp = OP_GET_LOCAL;
 
-        updateState.target = UPDATE_TARGET_VARIABLE;
-        if (updateState.currentUpdate != UPDATE_NONE) {
-            emitBytes(OP_GET_LOCAL, arg);
-            return;
-        }
-        if (canAssign && assignOp != TOKEN_ERROR) {
-            if (current->locals[arg].isConst) {
-                error("Cannot assign to const variable.");
-            }
-            emitSetBytes(OP_SET_LOCAL, OP_GET_LOCAL, arg, assignOp);
-        } else {
-            emitBytes(OP_GET_LOCAL, (uint8_t)arg);
-        }
+    if ((arg = resolveLocal(current, &name)) != -1) {
+        getOp = OP_GET_LOCAL;
+        setOp = OP_SET_LOCAL;
+        isConst = current->locals[arg].isConst;
     } else if ((arg = resolveUpvalue(current, &name)) != -1) {
-        // UPVALUE
-        if (current->locals[arg].isConst) {
-            updateState.isConst = true;
-        }
-        updateState.getOp = OP_GET_UPVALUE;
-        updateState.setOp = OP_SET_UPVALUE;
-        updateState.target = UPDATE_TARGET_VARIABLE;
-
-        updateState.arg = arg;
-        updateState.className = arg;
-        updateState.classGetOp = OP_GET_UPVALUE;
-        if (updateState.currentUpdate != UPDATE_NONE) {
-            emitBytes(OP_GET_UPVALUE, arg);
-            return;
-        }
-        if (canAssign && assignOp != TOKEN_ERROR) {
-            if (current->upvalues[arg].isConst) {
-                error("Cannot assign to const variable.");
-            }
-
-            emitSetBytes(OP_SET_UPVALUE, OP_GET_UPVALUE, arg, assignOp);
-        } else {
-            emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
-        }
+        getOp = OP_GET_UPVALUE;
+        setOp = OP_SET_UPVALUE;
+        isConst = current->upvalues[arg].isConst;
     } else {
-        // GLOBAL
         arg = identifierConstant(&name);
+        getOp = OP_GET_GLOBAL;
+        setOp = OP_SET_GLOBAL;
+    }
 
-        updateState.getOp = OP_GET_GLOBAL;
-        updateState.setOp = OP_SET_GLOBAL;
-        updateState.target = UPDATE_TARGET_VARIABLE;
+    updateState.getOp = getOp;
+    updateState.setOp = setOp;
+    updateState.target = UPDATE_TARGET_VARIABLE;
 
-        updateState.arg = arg;
-        updateState.className = arg;
-        updateState.classGetOp = OP_GET_GLOBAL;
-        if (updateState.currentUpdate != UPDATE_NONE) {
-            emitBytes(OP_GET_GLOBAL, arg);
-            return;
+    updateState.arg = arg;
+    updateState.className = arg;
+    updateState.classGetOp = getOp;
+    updateState.isConst = isConst;
+
+    if (updateState.currentUpdate != UPDATE_NONE) {
+        emitBytes(getOp, arg);
+        return;
+    }
+
+    if (canAssign && assignOp != TOKEN_ERROR) {
+        if (isConst) {
+            error("Cannot assign to const variable.");
         }
 
-        if (canAssign && assignOp != TOKEN_ERROR) {
-            emitSetBytes(OP_SET_GLOBAL, OP_GET_GLOBAL, arg, assignOp);
-        } else {
-            emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
-        }
+        emitSetBytes(setOp, getOp, arg, assignOp);
+    } else {
+        emitBytes(getOp, arg);
     }
 }
 
