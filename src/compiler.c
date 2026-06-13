@@ -501,7 +501,9 @@ static TokenType matchAssignmentOperator() {
         case TOKEN_MINUS_EQUAL:
         case TOKEN_STAR_EQUAL:
         case TOKEN_SLASH_EQUAL:
-        case TOKEN_PERCENT_EQUAL: {
+        case TOKEN_PERCENT_EQUAL:
+        case TOKEN_PLUS_PLUS:
+        case TOKEN_MINUS_MINUS: {
             TokenType type = parser.current.type;
             advance();
             return type;
@@ -514,9 +516,11 @@ static TokenType matchAssignmentOperator() {
 
 static void emitOpByte(uint8_t op) {
     switch (op) {
+        case TOKEN_PLUS_PLUS:
         case TOKEN_PLUS_EQUAL:
             emitByte(OP_ADD);
             break;
+        case TOKEN_MINUS_MINUS:
         case TOKEN_MINUS_EQUAL:
             emitByte(OP_SUBTRACT);
             break;
@@ -540,9 +544,16 @@ static void emitSetBytes(uint8_t setOp, uint8_t getOp, uint8_t arg,
     if (assignOp != TOKEN_EQUAL) {
         emitBytes(getOp, arg);
     }
-    expression();
+    if (assignOp == TOKEN_PLUS_PLUS || assignOp == TOKEN_MINUS_MINUS) {
+        emitByte(OP_DUP);
+        emitConstant(NUMBER_VAL(1));
+    } else {
+        expression();
+    }
     emitOpByte(assignOp);
     emitBytes(setOp, (uint8_t)arg);
+    if (assignOp == TOKEN_PLUS_PLUS || assignOp == TOKEN_MINUS_MINUS)
+        emitByte(OP_POP);
 }
 
 static void namedVariable(Token name, bool canAssign) {
@@ -717,6 +728,8 @@ ParseRule rules[] = {
     [TOKEN_PLUS_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_MINUS_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_STAR_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_PLUS_PLUS] = {NULL, NULL, PREC_NONE},
+    [TOKEN_MINUS_MINUS] = {NULL, NULL, PREC_NONE},
     [TOKEN_SLASH_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_PERCENT_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
