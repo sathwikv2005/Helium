@@ -674,6 +674,13 @@ static InterpretResult run() {
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
+            case OP_DUP:
+                push(peek(0));
+                break;
+            case OP_DUP2:
+                push(peek(1));
+                push(peek(1));
+                break;
             default:
                 break;
         }

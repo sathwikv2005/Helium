@@ -494,28 +494,78 @@ static uint8_t argumentList() {
     return argCount;
 }
 
+static TokenType matchAssignmentOperator() {
+    switch (parser.current.type) {
+        case TOKEN_EQUAL:
+        case TOKEN_PLUS_EQUAL:
+        case TOKEN_MINUS_EQUAL:
+        case TOKEN_STAR_EQUAL:
+        case TOKEN_SLASH_EQUAL:
+        case TOKEN_PERCENT_EQUAL: {
+            TokenType type = parser.current.type;
+            advance();
+            return type;
+        }
+
+        default:
+            return TOKEN_ERROR;
+    }
+}
+
+static void emitOpByte(uint8_t op) {
+    switch (op) {
+        case TOKEN_PLUS_EQUAL:
+            emitByte(OP_ADD);
+            break;
+        case TOKEN_MINUS_EQUAL:
+            emitByte(OP_SUBTRACT);
+            break;
+        case TOKEN_STAR_EQUAL:
+            emitByte(OP_MULTIPLY);
+            break;
+        case TOKEN_SLASH_EQUAL:
+            emitByte(OP_DIVIDE);
+            break;
+        case TOKEN_PERCENT_EQUAL:
+            emitByte(OP_MODULO);
+            break;
+        case TOKEN_EQUAL:
+        default:
+            break;
+    }
+}
+
+static void emitSetBytes(uint8_t setOp, uint8_t getOp, uint8_t arg,
+                         TokenType assignOp) {
+    if (assignOp != TOKEN_EQUAL) {
+        emitBytes(getOp, arg);
+    }
+    expression();
+    emitOpByte(assignOp);
+    emitBytes(setOp, (uint8_t)arg);
+}
+
 static void namedVariable(Token name, bool canAssign) {
     int arg = resolveLocal(current, &name);
+    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
     if (arg != -1) {
         // LOCAL
-        if (canAssign && match(TOKEN_EQUAL)) {
+        if (canAssign && assignOp != TOKEN_ERROR) {
             if (current->locals[arg].isConst) {
                 error("Cannot assign to const variable.");
             }
-            expression();
-            emitBytes(OP_SET_LOCAL, (uint8_t)arg);
+            emitSetBytes(OP_SET_LOCAL, OP_GET_LOCAL, arg, assignOp);
         } else {
             emitBytes(OP_GET_LOCAL, (uint8_t)arg);
         }
     } else if ((arg = resolveUpvalue(current, &name)) != -1) {
         // UPVALUE
-        if (canAssign && match(TOKEN_EQUAL)) {
+        if (canAssign && assignOp != TOKEN_ERROR) {
             if (current->upvalues[arg].isConst) {
                 error("Cannot assign to const variable.");
             }
 
-            expression();
-            emitBytes(OP_SET_UPVALUE, (uint8_t)arg);
+            emitSetBytes(OP_SET_UPVALUE, OP_GET_UPVALUE, arg, assignOp);
         } else {
             emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
         }
@@ -523,9 +573,8 @@ static void namedVariable(Token name, bool canAssign) {
         // GLOBAL
         arg = identifierConstant(&name);
 
-        if (canAssign && match(TOKEN_EQUAL)) {
-            expression();
-            emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+        if (canAssign && assignOp != TOKEN_ERROR) {
+            emitSetBytes(OP_SET_GLOBAL, OP_GET_GLOBAL, arg, assignOp);
         } else {
             emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
         }
@@ -603,9 +652,16 @@ static void call(bool canAssign) {
 static void dot(bool canAssign) {
     consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
     uint8_t name = identifierConstant(&parser.previous);
+    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
 
-    if (canAssign && match(TOKEN_EQUAL)) {
+    if (assignOp != TOKEN_ERROR) {
+        if (assignOp != TOKEN_EQUAL) {
+            emitByte(OP_DUP);
+            emitBytes(OP_GET_PROPERTY, name);
+        }
+
         expression();
+        emitOpByte(assignOp);
         emitBytes(OP_SET_PROPERTY, name);
     } else if (match(TOKEN_LEFT_PAREN)) {
         uint8_t argCount = argumentList();
@@ -619,8 +675,15 @@ static void instanceIndex(bool canAssign) {
     expression();
     consume(TOKEN_RIGHT_SQUARE, "Expect ']' after index.");
 
-    if (canAssign && match(TOKEN_EQUAL)) {
+    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
+
+    if (assignOp != TOKEN_ERROR) {
+        if (assignOp != TOKEN_EQUAL) {
+            emitByte(OP_DUP2);
+            emitByte(OP_GET_INDEX);
+        }
         expression();
+        emitOpByte(assignOp);
         emitByte(OP_SET_INDEX);
     } else {
         emitByte(OP_GET_INDEX);
@@ -651,6 +714,11 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL] = {NULL, binary, PREC_COMPARISON},
+    [TOKEN_PLUS_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_MINUS_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_STAR_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_SLASH_EQUAL] = {NULL, NULL, PREC_NONE},
+    [TOKEN_PERCENT_EQUAL] = {NULL, NULL, PREC_NONE},
     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
