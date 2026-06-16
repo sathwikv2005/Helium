@@ -12,20 +12,6 @@ sub new {
     return $self;
 }
 
-sub sum {
-    my ($self) = @_;
-
-    my $total = 0;
-    my $current = $self;
-
-    while (defined $current) {
-        $total += $current->{value};
-        $current = $current->{next};
-    }
-
-    return $total;
-}
-
 package main;
 
 my $N = 1000000;

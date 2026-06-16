@@ -3,18 +3,6 @@ class Node
     @value = value
     @next = nxt
   end
-
-  def sum
-    total = 0
-    current = self
-
-    while !current.nil?
-      total += current.instance_variable_get(:@value)
-      current = current.instance_variable_get(:@next)
-    end
-
-    total
-  end
 end
 
 N = 1_000_000

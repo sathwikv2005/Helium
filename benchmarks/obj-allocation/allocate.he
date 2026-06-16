@@ -3,18 +3,6 @@ class Node {
         this.value = value;
         this.next = next;
     }
-
-    sum() {
-        var total = 0;
-        var current = this;
-
-        while (current != null) {
-            total = total + current.value;
-            current = current.next;
-        }
-
-        return total;
-    }
 }
 
 const N = 1000000;
