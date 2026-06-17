@@ -1,0 +1,33 @@
+print "=== time ===";
+print time() > 0;
+
+print "=== clock ===";
+var c1 = clock();
+
+var i = 0;
+while (i < 100000) {
+    i = i + 1;
+}
+
+var c2 = clock();
+print c2 >= c1;
+
+print "=== number ===";
+print number("123");
+print number("123.45");
+print number("-99");
+print number("1e3");
+
+print "=== string ===";
+print string(123);
+print string(123.45);
+print string(true);
+print string(false);
+print string(null);
+print string("hello");
+
+print "=== len ===";
+print len("");
+print len("a");
+print len("hello");
+print len("hello world");

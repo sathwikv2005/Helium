@@ -10,6 +10,7 @@ TEST_DIR = "tests"
 TIMEOUT_SECONDS = 2
 VERBOSE = False
 STATS = False
+ACCEPT = False
 
 TOTAL_TIME = 0
 
@@ -169,16 +170,53 @@ def run_test(file_path: str):
     TOTAL_TIME += elapsed
     return True
 
+
+def bless_test(file_path: str):
+    result = run_program(file_path)
+
+    base, _ = os.path.splitext(file_path)
+
+    error_test = is_error_test(file_path)
+
+    if error_test:
+        target = base + ".err"
+
+        with open(target, "w", encoding="utf-8", newline="") as f:
+            f.write(result["stderr"])
+
+        print(
+            f"Blessed {color(file_path, Colors.YELLOW)} -> "
+            f"{color(os.path.basename(target), Colors.GREEN)}"
+        )
+    else:
+        target = base + ".out"
+
+        with open(target, "w", encoding="utf-8", newline="") as f:
+            f.write(result["stdout"])
+
+        print(
+            f"Blessed {color(file_path, Colors.YELLOW)} -> "
+            f"{color(os.path.basename(target), Colors.GREEN)}"
+        )
+
+    return True
+
 def run_file(file_path: str):
     if not os.path.isfile(file_path):
         print(color(f"File not found: {file_path}", Colors.RED))
         sys.exit(1)
     print(color("\n=== Helium Test Runner ===\n", Colors.BOLD))
     print(f"> running tests for {color(file_path, Colors.CYAN)}")
-    result = run_test(file_path)
+    result = None
+
+    if ACCEPT:
+        result = bless_test(file_path)
+    else:
+        result = run_test(file_path)
+    
     print(color("\n======================", Colors.BOLD))
     if result:
-        print(f"Test {color('passed', Colors.GREEN)}")
+        print(f"Test {color('output file created' if ACCEPT else 'passed', Colors.GREEN)}")
     else:
         print(f"Test {color('failed', Colors.RED)}")
 
@@ -198,10 +236,11 @@ def run_test_folder(folder_path: str):
             if file.endswith(".he"):
                 total += 1
                 path = os.path.join(root, file)
-
-                if run_test(path):
-                    passed += 1
-
+                if ACCEPT:
+                    bless_test(path)
+                else:
+                    if run_test(path):
+                        passed += 1
     percent = (passed / total * 100) if total else 0
 
     print(color("\n======================", Colors.BOLD))
@@ -226,7 +265,7 @@ def run_test_from_path(arg: str):
                 run_test_folder(arg)
 
 def run_test_with_args(args: list[str]):
-    global VERBOSE, STATS
+    global VERBOSE, STATS, ACCEPT
 
     path = TEST_DIR
 
@@ -236,9 +275,11 @@ def run_test_with_args(args: list[str]):
                 VERBOSE = True
             case "-s" | "--stats":
                 STATS = True
+            case "-a" | "--accept":
+                ACCEPT = True
             case _ if arg.startswith("-"):
                 print(f"Invalid argument passed {color(arg, Colors.RED)}")
-                print("usage: python tester.py [path] [-v] [-s]")
+                print("usage: python tester.py [path] [-v] [-s] [-a]")
                 sys.exit(1)
             case _:
                 path = arg

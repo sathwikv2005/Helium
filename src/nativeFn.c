@@ -142,10 +142,23 @@ static Value stringNative(int argCount, Value* args) {
     return NULL_VAL;
 }
 
+static Value lenNative(int argCount, Value* args) {
+    if (argCount != 1) {
+        runtimeError("len() expects 1 argument.");
+        return NULL_VAL;
+    }
+    if (!IS_STRING(args[0])) {
+        runtimeError("len() expects a string.");
+        return NULL_VAL;
+    }
+    return NUMBER_VAL(AS_STRING(args[0])->length);
+}
+
 void mapNatives() {
     defineNative("time", timeNative);
     defineNative("clock", clockNative);
     defineNative("input", inputNative);
     defineNative("number", numberNative);
     defineNative("string", stringNative);
+    defineNative("len", lenNative);
 }
