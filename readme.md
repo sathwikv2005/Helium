@@ -110,4 +110,6 @@ python tools/tester.py
 
 ## Benchmarks
 
+> Helium currently performs on par with Ruby on several benchmarks, and outperforms Python and Perl. Startup time is particularly strong, with Helium launching faster than all tested languages.
+
 Performance benchmark results comparing Helium with other scripting languages can be found [here](benchmarks/results.md).

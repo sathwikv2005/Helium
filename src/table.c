@@ -14,6 +14,7 @@ void initTable(Table* table) {
     table->count = 0;
     table->capacity = 0;
     table->entries = NULL;
+    table->mask = 0;
 }
 
 void freeTable(Table* table) {
@@ -21,8 +22,11 @@ void freeTable(Table* table) {
     initTable(table);
 }
 
-static Entry* findEntry(Entry* entries, int capacity, ObjString* key) {
-    uint32_t index = key->hash % capacity;
+static Entry* findEntry(Entry* entries, int mask, ObjString* key) {
+    // faster than (hash % capacity) since capacity is always a power of 2.
+    // mask = capacity - 1 for fast index wrapping.
+    uint32_t index = key->hash & mask;
+
     Entry* tombstone = NULL;
 
     for (;;) {
@@ -37,14 +41,14 @@ static Entry* findEntry(Entry* entries, int capacity, ObjString* key) {
         } else if (entry->key == key) {
             return entry;
         }
-        index = (index + 1) % capacity;
+        index = (index + 1) & mask;
     }
 }
 
 bool tableGet(Table* table, ObjString* key, Value* value) {
     if (table->count == 0) return false;
 
-    Entry* entry = findEntry(table->entries, table->capacity, key);
+    Entry* entry = findEntry(table->entries, table->mask, key);
     if (entry->key == NULL) return false;
 
     *value = entry->value;
@@ -53,7 +57,7 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
 
 static void adjustCapacity(Table* table, int capacity) {
     Entry* entries = ALLOCATE(Entry, capacity);
-
+    int mask = capacity - 1;
     for (int i = 0; i < capacity; i++) {
         entries[i].key = NULL;
         entries[i].value = NULL_VAL;
@@ -63,7 +67,7 @@ static void adjustCapacity(Table* table, int capacity) {
         Entry* entry = &table->entries[i];
         if (entry->key == NULL) continue;
 
-        Entry* newEntry = findEntry(entries, capacity, entry->key);
+        Entry* newEntry = findEntry(entries, mask, entry->key);
         newEntry->key = entry->key;
         newEntry->value = entry->value;
         table->count++;
@@ -71,6 +75,7 @@ static void adjustCapacity(Table* table, int capacity) {
     FREE_ARRAY(Entry, table->entries, table->capacity);
     table->entries = entries;
     table->capacity = capacity;
+    table->mask = mask;
 }
 
 bool tableSet(Table* table, ObjString* key, Value value) {
@@ -79,7 +84,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
         adjustCapacity(table, capacity);
     }
 
-    Entry* entry = findEntry(table->entries, table->capacity, key);
+    Entry* entry = findEntry(table->entries, table->mask, key);
 
     bool isNewKey = entry->key == NULL;
     if (isNewKey && IS_NULL(entry->value)) table->count++;
@@ -103,7 +108,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash) {
     if (table->count == 0) return NULL;
 
-    uint32_t index = hash % table->capacity;
+    uint32_t index = hash & table->mask;
 
     for (;;) {
         Entry* entry = &table->entries[index];
@@ -113,13 +118,13 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
                    memcmp(entry->key->chars, chars, length) == 0) {
             return entry->key;
         }
-        index = (index + 1) % table->capacity;
+        index = (index + 1) & table->mask;
     }
 }
 
 bool tableDelete(Table* table, ObjString* key) {
     if (table->count == 0) return false;
-    Entry* entry = findEntry(table->entries, table->capacity, key);
+    Entry* entry = findEntry(table->entries, table->mask, key);
     if (entry->key == NULL) return false;
 
     entry->key = NULL;

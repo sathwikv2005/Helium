@@ -77,8 +77,6 @@ static Value numberNative(int argCount, Value* args) {
     return NUMBER_VAL(value);
 }
 
-#include <stdio.h>
-
 static Value stringNative(int argCount, Value* args) {
     if (argCount != 1) {
         runtimeError("string() expects 1 argument.");
@@ -86,39 +84,62 @@ static Value stringNative(int argCount, Value* args) {
     }
 
     Value value = args[0];
+    char buffer[32];
 
-    char buffer[100];
+    if (IS_BOOL(value)) {
+        return OBJ_VAL(copyString(AS_BOOL(value) ? "true" : "false",
+                                  AS_BOOL(value) ? 4 : 5));
+    }
 
-    switch (value.type) {
-        case VAL_BOOL:
-            return OBJ_VAL(copyString(AS_BOOL(value) ? "true" : "false",
-                                      AS_BOOL(value) ? 4 : 5));
+    if (IS_NULL(value)) {
+        return OBJ_VAL(copyString("null", 4));
+    }
 
-        case VAL_NULL:
-            return OBJ_VAL(copyString("null", 4));
+    if (IS_NUMBER(value)) {
+        int length =
+            snprintf(buffer, sizeof(buffer), "%.15g", AS_NUMBER(value));
+        return OBJ_VAL(copyString(buffer, length));
+    }
 
-        case VAL_NUMBER: {
-            int length =
-                snprintf(buffer, sizeof(buffer), "%.15g", AS_NUMBER(value));
+    Obj* obj = AS_OBJ(value);
+
+    switch (obj->type) {
+        case OBJ_STRING:
+            return value;
+
+        case OBJ_FUNCTION:
+        case OBJ_CLOSURE:
+            return OBJ_VAL(copyString("<fn>", 4));
+
+        case OBJ_NATIVE:
+            return OBJ_VAL(copyString("<native fn>", 11));
+
+        case OBJ_UPVALUE:
+            return OBJ_VAL(copyString("<upvalue>", 9));
+
+        case OBJ_VARIABLE:
+            return OBJ_VAL(copyString("<variable>", 10));
+
+        case OBJ_CLASS: {
+            ObjClass* klass = (ObjClass*)obj;
+            return OBJ_VAL(copyString(klass->name->chars, klass->name->length));
+        }
+
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = (ObjInstance*)obj;
+
+            char buffer[256];
+            int length = snprintf(buffer, sizeof(buffer), "%s instance",
+                                  instance->klass->name->chars);
+
             return OBJ_VAL(copyString(buffer, length));
         }
 
-        case VAL_OBJ: {
-            switch (OBJ_TYPE(value)) {
-                case OBJ_STRING:
-                    return value;  // already a string
-                case OBJ_CLOSURE:
-                    return OBJ_VAL(copyString("<fn>", 4));
-                case OBJ_FUNCTION:
-                    return OBJ_VAL(copyString("<fn>", 4));
-
-                case OBJ_NATIVE:
-                    return OBJ_VAL(copyString("<native fn>", 11));
-            }
-        }
+        case OBJ_BOUND_METHOD:
+            return OBJ_VAL(copyString("<bound method>", 14));
     }
 
-    return NULL_VAL;  // fallback
+    return NULL_VAL;
 }
 
 void mapNatives() {

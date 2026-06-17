@@ -12,6 +12,7 @@ typedef struct {
 typedef struct {
     int count;
     int capacity;
+    int mask;  // mask = capacity-1, used for fast index wrapping. (hash & mask)
     Entry* entries;
 } Table;
 
