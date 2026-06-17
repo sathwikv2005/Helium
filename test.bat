@@ -1,2 +1,2 @@
 @echo off
-py tools/tester.py
+py tools/tester.py %*
