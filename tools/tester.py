@@ -2,12 +2,19 @@ import subprocess
 import os
 import sys
 import difflib
+import time
 
 
 HELIUM_EXEC = "./helium.exe"
 TEST_DIR = "tests"
 TIMEOUT_SECONDS = 2
+VERBOSE = False
+STATS = False
 
+TOTAL_TIME = 0
+
+SLOWEST_TIME = 0
+SLOWEST_TEST = ""
 
 # ANSI colors
 class Colors:
@@ -75,13 +82,32 @@ def print_diff(expected, actual):
     print(color("----------------", Colors.YELLOW))
 
 
-def run_test(file_path):
+def run_test(file_path: str):
+    global TOTAL_TIME, SLOWEST_TIME, SLOWEST_TEST
+
+    start_time = time.perf_counter()
+    
     result = run_program(file_path)
 
-    expected_out = read_file(file_path.replace(".he", ".out"))
-    expected_err = read_file(file_path.replace(".he", ".err"))
+    elapsed = time.perf_counter() - start_time
+
+
+
+    base, _ = os.path.splitext(file_path)
+
+    expected_out = read_file(base + ".out")
+    expected_err = read_file(base + ".err")
+
+    
 
     error_test = is_error_test(file_path)
+
+    if expected_out is None and expected_err is None:
+        if error_test:
+            print(f"Missing validation file: {color(file_path.removesuffix('.he') + '.err', Colors.RED)}")
+        else:    
+            print(f"Missing validation file: {color(file_path.removesuffix('.he') + '.out', Colors.RED)}")
+        sys.exit(1)
 
     errors = []
 
@@ -105,9 +131,13 @@ def run_test(file_path):
     if expected_err is not None and result["stderr"] != expected_err:
         errors.append(("STDERR", expected_err, result["stderr"]))
 
+    # check crash
+    if result["exit_code"] < 0:
+        errors.append("Process crashed")
+
     
     if errors:
-        print(color(f"\nFAIL: {file_path}", Colors.RED))
+        print(color(f"\nFAIL: {file_path} ({formatTimeElapsed(elapsed)}{color(')', Colors.RED)}", Colors.RED))
 
         for err in errors:
             if isinstance(err, str):
@@ -119,16 +149,51 @@ def run_test(file_path):
 
         return False
 
+    if VERBOSE:
+        print(color(f"PASS: {file_path}", Colors.GREEN))
+    if STATS:
+        label = f"Time taken ({file_path}):"
+        padded = label.ljust(70)
+
+        colored_label = padded.replace(
+            file_path,
+            color(file_path, Colors.YELLOW)
+        )
+
+        printTimeElapsed(colored_label, elapsed)
+
+    if elapsed > SLOWEST_TIME:
+        SLOWEST_TIME = elapsed
+        SLOWEST_TEST = file_path
+
+    TOTAL_TIME += elapsed
     return True
 
+def run_file(file_path: str):
+    if not os.path.isfile(file_path):
+        print(color(f"File not found: {file_path}", Colors.RED))
+        sys.exit(1)
+    print(color("\n=== Helium Test Runner ===\n", Colors.BOLD))
+    print(f"> running tests for {color(file_path, Colors.CYAN)}")
+    result = run_test(file_path)
+    print(color("\n======================", Colors.BOLD))
+    if result:
+        print(f"Test {color('passed', Colors.GREEN)}")
+    else:
+        print(f"Test {color('failed', Colors.RED)}")
 
-def run_all_tests():
+
+
+def run_test_folder(folder_path: str):
+    if not os.path.isdir(folder_path):
+        print(color(f"Test folder not found: {folder_path}", Colors.RED))
+        sys.exit(1)
     total = 0
     passed = 0
 
     print(color("\n=== Helium Test Runner ===\n", Colors.BOLD))
-
-    for root, _, files in os.walk(TEST_DIR):
+    print(f"> running tests for {color(folder_path, Colors.CYAN)}")
+    for root, _, files in os.walk(folder_path):
         for file in files:
             if file.endswith(".he"):
                 total += 1
@@ -146,6 +211,59 @@ def run_all_tests():
     if passed != total:
         sys.exit(1)
 
+def run_all_tests():
+    run_test_folder(TEST_DIR)
+
+
+def run_test_from_path(arg: str):
+    match arg:
+        case "all":
+            run_all_tests()
+        case _:
+            if arg.endswith(".he"):
+                run_file(arg)
+            else:
+                run_test_folder(arg)
+
+def run_test_with_args(args: list[str]):
+    global VERBOSE, STATS
+
+    path = TEST_DIR
+
+    for arg in args:
+        match arg:
+            case "-v" | "--verbose":
+                VERBOSE = True
+            case "-s" | "--stats":
+                STATS = True
+            case _ if arg.startswith("-"):
+                print(f"Invalid argument passed {color(arg, Colors.RED)}")
+                print("usage: python tester.py [path] [-v] [-s]")
+                sys.exit(1)
+            case _:
+                path = arg
+
+    run_test_from_path(path)
+
+
+def formatTimeElapsed(elapsed) -> str:
+    if elapsed < 0.001:
+        return (f"{color(f'{elapsed * 1_000_000:.2f} µs', Colors.CYAN)}")
+    elif elapsed < 1:
+        return (f"{color(f'{elapsed * 1000:.2f} ms', Colors.CYAN)}")
+    else:
+        return (f"{color(f'{elapsed:.3f} s', Colors.CYAN)}")
+
+def printTimeElapsed(text: str, elapsed: float):
+    print(f"{text} {formatTimeElapsed(elapsed)}")
 
 if __name__ == "__main__":
-    run_all_tests()
+    if not os.path.isfile(HELIUM_EXEC):
+        print(color(f"Helium executable not found: {HELIUM_EXEC}", Colors.RED))
+        sys.exit(1)
+    
+    run_test_with_args(sys.argv[1::])
+
+    printTimeElapsed("Total time taken:", TOTAL_TIME)
+    print(f"Slowest test: {color(SLOWEST_TEST, Colors.YELLOW)}")
+    printTimeElapsed("Time:", SLOWEST_TIME)
