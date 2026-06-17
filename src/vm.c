@@ -247,6 +247,11 @@ static void concatenate() {
 static InterpretResult run() {
     CallFrame* frame = &vm.frames[vm.frameCount - 1];
     register uint8_t* ip = frame->ip;
+#define RUNTIME_ERROR(...)         \
+    do {                           \
+        frame->ip = ip;            \
+        runtimeError(__VA_ARGS__); \
+    } while (false)
 #define READ_BYTE() (*ip++)
 #define READ_CONSTANT() \
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
@@ -255,9 +260,7 @@ static InterpretResult run() {
 #define BINARY_OP(valueType, op)                          \
     do {                                                  \
         if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
-            frame->ip = ip;                               \
-            runtimeError("Operands must be numbers.");    \
-            return INTERPRET_RUNTIME_ERROR;               \
+            RUNTIME_ERROR("Operands must be numbers.");   \
         }                                                 \
         double b = AS_NUMBER(pop());                      \
         double a = AS_NUMBER(pop());                      \
@@ -316,23 +319,18 @@ static InterpretResult run() {
                 Value value;
 
                 if (!tableGet(&vm.globals, name, &value)) {
-                    frame->ip = ip;
-                    runtimeError("Undefined variable '%s'.", name->chars);
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
                 }
 
                 if (!IS_VARIABLE(value)) {
-                    frame->ip = ip;
-                    runtimeError("Internal error: expected variable.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Internal error: expected variable.",
+                                  name->chars);
                 }
                 ObjVariable* var = AS_VARIABLE(value);
 
                 if (var->isConst) {
-                    frame->ip = ip;
-                    runtimeError("Cannot assign to const variable '%s'.",
-                                 name->chars);
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Cannot assign to const variable '%s'.",
+                                  name->chars);
                 }
 
                 var->value = peek(0);
@@ -342,9 +340,7 @@ static InterpretResult run() {
                 ObjString* name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    frame->ip = ip;
-                    runtimeError("Undefined variable '%s'.", name->chars);
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
                 }
                 if (IS_VARIABLE(value)) {
                     ObjVariable* var = AS_VARIABLE(value);
@@ -401,8 +397,7 @@ static InterpretResult run() {
             }
             case OP_GET_PROPERTY: {
                 if (!IS_INSTANCE(peek(0))) {
-                    runtimeError("Only instances have properties.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Only instances have properties.");
                 }
                 ObjInstance* instance = AS_INSTANCE(peek(0));
                 ObjString* name = READ_STRING();
@@ -421,8 +416,7 @@ static InterpretResult run() {
             }
             case OP_SET_PROPERTY: {
                 if (!IS_INSTANCE(peek(1))) {
-                    runtimeError("Only instances have fields.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Only instances have fields.");
                 }
                 ObjInstance* instance = AS_INSTANCE(peek(1));
                 tableSet(&instance->fields, READ_STRING(), peek(0));
@@ -446,13 +440,12 @@ static InterpretResult run() {
                 Value key = pop();
 
                 if (!IS_INSTANCE(peek(0))) {
-                    runtimeError("Only instances and arrays support indexing.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR(
+                        "Only instances and arrays support indexing.");
                 }
 
                 if (!IS_STRING(key)) {
-                    runtimeError("Field name must be a string.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Field name must be a string.");
                 }
 
                 ObjInstance* instance = AS_INSTANCE(peek(0));
@@ -474,13 +467,12 @@ static InterpretResult run() {
                 Value key = peek(1);
 
                 if (!IS_INSTANCE(peek(2))) {
-                    runtimeError("Only instances and arrays support indexing.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR(
+                        "Only instances and arrays support indexing.");
                 }
 
                 if (!IS_STRING(key)) {
-                    runtimeError("Field name must be a string.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Field name must be a string.");
                 }
 
                 ObjInstance* instance = AS_INSTANCE(peek(2));
@@ -498,9 +490,7 @@ static InterpretResult run() {
             case OP_INHERIT: {
                 Value superclass = peek(1);
                 if (!IS_CLASS(superclass)) {
-                    frame->ip = ip;
-                    runtimeError("Superclass must be a class.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Superclass must be a class.");
                 }
                 ObjClass* subclass = AS_CLASS(peek(0));
                 tableAddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
@@ -549,9 +539,7 @@ static InterpretResult run() {
                     double a = AS_NUMBER(pop());
                     push(NUMBER_VAL(a + b));
                 } else {
-                    frame->ip = ip;
-                    runtimeError("Operands must be numbers or strings.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Operands must be numbers or strings.");
                 }
                 break;
             }
@@ -563,22 +551,16 @@ static InterpretResult run() {
                 break;
             case OP_DIVIDE:
                 if (IS_NUMBER(peek(0)) && AS_NUMBER(peek(0)) == 0) {
-                    frame->ip = ip;
-                    runtimeError("Division by zero.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Division by zero.");
                 }
                 BINARY_OP(NUMBER_VAL, /);
                 break;
             case OP_MODULO: {
                 if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-                    frame->ip = ip;
-                    runtimeError("Operands must be numbers.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Operands must be numbers.");
                 }
                 if (AS_NUMBER(peek(0)) == 0) {
-                    frame->ip = ip;
-                    runtimeError("Modulo by zero.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Modulo by zero.");
                 }
 
                 double b = AS_NUMBER(pop());
@@ -592,9 +574,7 @@ static InterpretResult run() {
                 break;
             case OP_NEGATE: {
                 if (!IS_NUMBER(peek(0))) {
-                    frame->ip = ip;
-                    runtimeError("Operand must be a number.");
-                    return INTERPRET_RUNTIME_ERROR;
+                    RUNTIME_ERROR("Operand must be a number.");
                 }
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;
