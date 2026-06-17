@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import time
 import statistics
 import math
@@ -432,7 +433,7 @@ def write_global_results(all_results):
 # Entry point
 # ------------------------
 
-def main():
+def run_all():
     all_results = {}
 
     for subfolder in os.listdir(BASE_DIR):
@@ -444,6 +445,17 @@ def main():
 
     write_global_results(all_results)
 
+def run_single(folder_path):
+    results = process_folder(folder_path)
+
+    folder_name = os.path.basename(os.path.normpath(folder_path))
+    write_global_results({folder_name: results})
+
+def main(folder_path=None):
+    if folder_path is None:
+        run_all()
+    else:
+        run_single(folder_path)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else None)
