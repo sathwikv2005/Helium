@@ -109,6 +109,9 @@ void printObject(Value value) {
         case OBJ_NATIVE:
             printf("<native fn>");
             break;
+        case OBJ_HASHMAP:
+            printf("<map>");
+            break;
         case OBJ_VARIABLE:
             printf("Variable");
             break;
@@ -201,4 +204,10 @@ ObjUpvalue* newUpvalue(Value* slot) {
     upvalue->next = NULL;
     upvalue->closed = NULL_VAL;
     return upvalue;
+}
+
+ObjHashMap* newHashMap() {
+    ObjHashMap* hashMap = ALLOCATE_OBJ(ObjHashMap, OBJ_HASHMAP);
+    initTable(&hashMap->map);
+    return hashMap;
 }

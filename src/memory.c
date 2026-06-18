@@ -109,6 +109,11 @@ static void blackenObject(Obj* object) {
             markValue(variable->value);
             break;
         }
+        case OBJ_HASHMAP: {
+            ObjHashMap* hashMap = (ObjHashMap*)object;
+            markTable(&hashMap->map);
+            break;
+        }
         case OBJ_NATIVE:
         case OBJ_STRING:
             break;
@@ -158,6 +163,11 @@ static void freeObject(Obj* object) {
             freeChunk(&function->chunk);
             FREE(ObjFunction, object);
             break;
+        }
+        case OBJ_HASHMAP: {
+            ObjHashMap* hashMap = (ObjHashMap*)object;
+            freeTable(&hashMap->map);
+            FREE(OBJ_HASHMAP, object);
         }
         case OBJ_NATIVE:
             FREE(ObjNative, object);

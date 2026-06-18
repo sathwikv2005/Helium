@@ -137,6 +137,8 @@ static Value stringNative(int argCount, Value* args) {
 
         case OBJ_BOUND_METHOD:
             return OBJ_VAL(copyString("<bound method>", 14));
+        case OBJ_HASHMAP:
+            return OBJ_VAL(copyString("<map>", 5));
     }
 
     return NULL_VAL;

@@ -15,7 +15,9 @@
 #define IS_CLASS(value) isObjType(value, OBJ_CLASS)
 #define IS_INSTANCE(value) isObjType(value, OBJ_INSTANCE)
 #define IS_BOUND_METHOD(value) isObjType(value, OBJ_BOUND_METHOD)
+#define IS_HASHMAP(value) isObjType(value, OBJ_HASHMAP)
 
+#define AS_HASHMAP(value) ((ObjHashMap*)AS_OBJ(value))
 #define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_INSTANCE(value) ((ObjInstance*)AS_OBJ(value))
 #define AS_CLASS(value) ((ObjClass*)AS_OBJ(value))
@@ -35,7 +37,8 @@ typedef enum {
     OBJ_CLOSURE,
     OBJ_CLASS,
     OBJ_INSTANCE,
-    OBJ_BOUND_METHOD
+    OBJ_BOUND_METHOD,
+    OBJ_HASHMAP
 } ObjType;
 
 struct Obj {
@@ -97,6 +100,11 @@ typedef struct {
     ObjClosure* method;
 } ObjBoundMethod;
 
+typedef struct {
+    Obj obj;
+    Table map;
+} ObjHashMap;
+
 typedef Value (*NativeFn)(int argCount, Value* args);
 
 typedef struct {
@@ -111,6 +119,7 @@ ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
+ObjHashMap* newHashMap();
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
