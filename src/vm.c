@@ -395,31 +395,72 @@ static InterpretResult run() {
                 *frame->closure->upvalues[slot]->location = peek(0);
                 break;
             }
+
+            case OP_CREATE_MAP: {
+                ObjHashMap* hashMap = newHashMap();
+                push(OBJ_VAL(hashMap));
+                break;
+            }
+
             case OP_GET_PROPERTY: {
-                if (!IS_INSTANCE(peek(0))) {
-                    RUNTIME_ERROR("Only instances have properties.");
+                if (!IS_OBJ(peek(0))) {
+                    RUNTIME_ERROR("Only instances and maps have fields.");
                 }
-                ObjInstance* instance = AS_INSTANCE(peek(0));
+                Obj* target = AS_OBJ(peek(0));
                 ObjString* name = READ_STRING();
-
                 Value value;
-
-                if (tableGet(&instance->fields, name, &value)) {
-                    pop();
-                    push(value);
-                } else if (!bindMethod(instance->klass, name)) {
-                    pop();
-                    push(NULL_VAL);  // return null as default
+                switch (target->type) {
+                    case OBJ_INSTANCE: {
+                        ObjInstance* instance = (ObjInstance*)target;
+                        if (tableGet(&instance->fields, name, &value)) {
+                            pop();
+                            push(value);
+                        } else if (!bindMethod(instance->klass, name)) {
+                            pop();
+                            push(NULL_VAL);  // return null as default
+                        }
+                        break;
+                    }
+                    case OBJ_HASHMAP: {
+                        ObjHashMap* hashMap = (ObjHashMap*)target;
+                        if (tableGet(&hashMap->map, name, &value)) {
+                            pop();
+                            push(value);
+                        } else {
+                            pop();
+                            push(NULL_VAL);  // return null as default
+                        }
+                        break;
+                    }
+                    default: {
+                        RUNTIME_ERROR("Only instances and maps have fields.");
+                        break;
+                    }
                 }
 
                 break;
             }
             case OP_SET_PROPERTY: {
-                if (!IS_INSTANCE(peek(1))) {
-                    RUNTIME_ERROR("Only instances have fields.");
+                if (!IS_OBJ(peek(1))) {
+                    RUNTIME_ERROR("Only instances and maps have fields.");
                 }
-                ObjInstance* instance = AS_INSTANCE(peek(1));
-                tableSet(&instance->fields, READ_STRING(), peek(0));
+                Obj* target = AS_OBJ(peek(1));
+                switch (target->type) {
+                    case OBJ_INSTANCE: {
+                        ObjInstance* instance = (ObjInstance*)target;
+                        tableSet(&instance->fields, READ_STRING(), peek(0));
+                        break;
+                    }
+                    case OBJ_HASHMAP: {
+                        ObjHashMap* hashMap = (ObjHashMap*)target;
+                        tableSet(&hashMap->map, READ_STRING(), peek(0));
+                        break;
+                    }
+                    default: {
+                        RUNTIME_ERROR("Only instances and maps have fields.");
+                        break;
+                    }
+                }
                 Value value = pop();
                 pop();
                 push(value);
@@ -439,19 +480,43 @@ static InterpretResult run() {
             case OP_GET_INDEX: {
                 Value key = pop();
 
-                if (!IS_INSTANCE(peek(0))) {
+                if (!IS_OBJ(peek(0))) {
                     RUNTIME_ERROR(
-                        "Only instances and arrays support indexing.");
+                        "Only instances, maps and arrays support indexing.");
                 }
-
-                if (!IS_STRING(key)) {
-                    RUNTIME_ERROR("Field name must be a string.");
-                }
-
-                ObjInstance* instance = AS_INSTANCE(peek(0));
-
                 Value value;
-                if (tableGet(&instance->fields, AS_STRING(key), &value)) {
+                Obj* target = AS_OBJ(peek(0));
+                bool get = false;
+                switch (target->type) {
+                    case OBJ_INSTANCE: {
+                        if (!IS_STRING(key)) {
+                            RUNTIME_ERROR("Field name must be a string.");
+                        }
+                        ObjInstance* instance = (ObjInstance*)target;
+                        get =
+                            tableGet(&instance->fields, AS_STRING(key), &value);
+                        break;
+                    }
+                    case OBJ_HASHMAP: {
+                        if (IS_NUMBER(key)) {
+                            key = OBJ_VAL(valueToString(key));
+                        }
+                        if (!IS_STRING(key)) {
+                            RUNTIME_ERROR("Field name must be a string.");
+                        }
+                        ObjHashMap* hashMap = (ObjHashMap*)target;
+                        get = tableGet(&hashMap->map, AS_STRING(key), &value);
+                        break;
+                    }
+                    default: {
+                        RUNTIME_ERROR(
+                            "Only instances, maps and arrays support "
+                            "indexing.");
+                        break;
+                    }
+                }
+
+                if (get) {
                     pop();
                     push(value);
                 } else {
@@ -466,18 +531,38 @@ static InterpretResult run() {
                 Value value = peek(0);
                 Value key = peek(1);
 
-                if (!IS_INSTANCE(peek(2))) {
+                if (!IS_OBJ(peek(2))) {
                     RUNTIME_ERROR(
-                        "Only instances and arrays support indexing.");
+                        "Only instances, maps and arrays support indexing.");
                 }
-
-                if (!IS_STRING(key)) {
-                    RUNTIME_ERROR("Field name must be a string.");
+                Obj* target = AS_OBJ(peek(2));
+                switch (target->type) {
+                    case OBJ_INSTANCE: {
+                        if (!IS_STRING(key)) {
+                            RUNTIME_ERROR("Field name must be a string.");
+                        }
+                        ObjInstance* instance = (ObjInstance*)target;
+                        tableSet(&instance->fields, AS_STRING(key), value);
+                        break;
+                    }
+                    case OBJ_HASHMAP: {
+                        if (IS_NUMBER(key)) {
+                            key = OBJ_VAL(valueToString(key));
+                        }
+                        if (!IS_STRING(key)) {
+                            RUNTIME_ERROR("Field name must be a string.");
+                        }
+                        ObjHashMap* hashMap = (ObjHashMap*)target;
+                        tableSet(&hashMap->map, AS_STRING(key), value);
+                        break;
+                    }
+                    default: {
+                        RUNTIME_ERROR(
+                            "Only instances, maps and arrays support "
+                            "indexing.");
+                        break;
+                    }
                 }
-
-                ObjInstance* instance = AS_INSTANCE(peek(2));
-
-                tableSet(&instance->fields, AS_STRING(key), value);
 
                 pop();  // value
                 pop();  // key

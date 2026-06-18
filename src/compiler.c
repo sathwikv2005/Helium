@@ -926,10 +926,32 @@ static void postFixDecrement(bool canAssign) {
     }
     updateState = old;
 }
+
+static void hashMap(bool canAssign) {
+    emitByte(OP_CREATE_MAP);
+    while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+        emitByte(OP_DUP);
+        if (match(TOKEN_STRING)) {
+            string(canAssign);
+        } else if (match(TOKEN_IDENTIFIER) || match(TOKEN_NUMBER)) {
+            emitConstant(OBJ_VAL(
+                copyString(parser.previous.start, parser.previous.length)));
+        } else {
+            error("Expect a key");
+        }
+        consume(TOKEN_COLON, "Expect ':' after key.");
+        expression();
+        if (!check(TOKEN_RIGHT_BRACE))
+            consume(TOKEN_COMMA, "Expect comma after value.");
+        emitBytes(OP_SET_INDEX, OP_POP);
+    }
+    consume(TOKEN_RIGHT_BRACE, "Expect '}' at end of the map");
+}
+
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, call, PREC_CALL},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
-    [TOKEN_LEFT_BRACE] = {NULL, NULL, PREC_NONE},
+    [TOKEN_LEFT_BRACE] = {hashMap, NULL, PREC_NONE},
     [TOKEN_RIGHT_BRACE] = {NULL, NULL, PREC_NONE},
     [TOKEN_LEFT_SQUARE] = {NULL, instanceIndex, PREC_CALL},
     [TOKEN_RIGHT_SQUARE] = {NULL, NULL, PREC_NONE},
