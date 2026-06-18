@@ -1,0 +1,14 @@
+var mp = {
+    inner: {
+        value: 123
+    }
+};
+
+print mp.inner.value;
+
+var mp = {};
+
+mp.first = {};
+mp.first.second = 1234;
+
+print mp.first.second;
