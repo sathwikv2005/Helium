@@ -10,7 +10,8 @@ typedef struct {
 } Entry;
 
 typedef struct {
-    int count;
+    int size;   // live entries
+    int count;  // size + tombstones
     int capacity;
     int mask;  // mask = capacity-1, used for fast index wrapping. (hash & mask)
     Entry* entries;

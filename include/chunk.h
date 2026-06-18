@@ -48,6 +48,8 @@ typedef enum {
     OP_GET_SUPER,
     OP_SUPER_INVOKE,
 
+    OP_CREATE_MAP,
+
     OP_DUP,
     OP_DUP2,
     OP_SWAP,

@@ -1,0 +1,36 @@
+print {};
+var x = 10;
+
+var mp = {
+    a: 1 + 2,
+    b: 3 * 4,
+    c: 3,
+    value: x,
+    "hello": "world",
+    123: "abcd",
+    123.11: "abcd",
+};
+
+print mp.a;
+print mp.b;
+print mp.c;
+print mp.value;
+print mp["hello"];
+print mp.hello;
+print mp[123];
+print mp["123"];
+print mp[123.11];
+print mp["123.11"];
+print mp.doesnotexist;
+print mp[404];
+
+var mp = {
+    1: "one",
+    2: "two",
+    3: "three"
+};
+
+print mp["1"];
+print mp["2"];
+print mp["3"];
+

@@ -80,6 +80,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     switch (instruction) {
         case OP_CONSTANT:
             return constantInstruction("OP_CONSTANT", chunk, offset);
+        case OP_CREATE_MAP:
+            return simpleInstruction("OP_CREATE_MAP", offset);
         case OP_FALSE:
             return simpleInstruction("OP_FALSE", offset);
         case OP_TRUE:

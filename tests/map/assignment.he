@@ -1,0 +1,13 @@
+var mp = {};
+
+mp.a = 42;
+
+print mp.a;
+
+mp["name"] = "Helium";
+
+print mp["name"];
+
+mp.a = 2;
+
+print mp.a;
