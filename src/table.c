@@ -11,6 +11,7 @@
 #define TABLE_MAX_LOAD 0.75
 
 void initTable(Table* table) {
+    table->size = 0;
     table->count = 0;
     table->capacity = 0;
     table->entries = NULL;
@@ -63,6 +64,7 @@ static void adjustCapacity(Table* table, int capacity) {
         entries[i].value = NULL_VAL;
     }
     table->count = 0;
+    table->size = 0;
     for (int i = 0; i < table->capacity; i++) {
         Entry* entry = &table->entries[i];
         if (entry->key == NULL) continue;
@@ -71,6 +73,7 @@ static void adjustCapacity(Table* table, int capacity) {
         newEntry->key = entry->key;
         newEntry->value = entry->value;
         table->count++;
+        table->size++;
     }
     FREE_ARRAY(Entry, table->entries, table->capacity);
     table->entries = entries;
@@ -87,7 +90,13 @@ bool tableSet(Table* table, ObjString* key, Value value) {
     Entry* entry = findEntry(table->entries, table->mask, key);
 
     bool isNewKey = entry->key == NULL;
-    if (isNewKey && IS_NULL(entry->value)) table->count++;
+    if (isNewKey) {
+        table->size++;
+
+        if (IS_NULL(entry->value)) {
+            table->count++;
+        }
+    }
 
     entry->key = key;
     entry->value = value;
@@ -127,6 +136,7 @@ bool tableDelete(Table* table, ObjString* key) {
     Entry* entry = findEntry(table->entries, table->mask, key);
     if (entry->key == NULL) return false;
 
+    table->size--;
     entry->key = NULL;
     entry->value = BOOL_VAL(true);
 

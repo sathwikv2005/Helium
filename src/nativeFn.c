@@ -149,11 +149,23 @@ static Value lenNative(int argCount, Value* args) {
         runtimeError("len() expects 1 argument.");
         return NULL_VAL;
     }
-    if (!IS_STRING(args[0])) {
-        runtimeError("len() expects a string.");
+
+    if (!IS_OBJ(args[0])) {
+        runtimeError("Object has no length.");
         return NULL_VAL;
     }
-    return NUMBER_VAL(AS_STRING(args[0])->length);
+
+    switch (OBJ_TYPE(args[0])) {
+        case OBJ_STRING:
+            return NUMBER_VAL(AS_STRING(args[0])->length);
+
+        case OBJ_HASHMAP:
+            return NUMBER_VAL(AS_HASHMAP(args[0])->map.size);
+
+        default:
+            runtimeError("Object has no length.");
+            return NULL_VAL;
+    }
 }
 
 void mapNatives() {
