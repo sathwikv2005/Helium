@@ -1,5 +1,9 @@
 # builds
 *.exe
 
+#profiler output
+gmon.out
+report.txt
+
 # local test files
 test.he
