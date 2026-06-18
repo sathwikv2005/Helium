@@ -83,6 +83,22 @@ static void printFunction(ObjFunction* function) {
     printf("<fn %s>", function->name->chars);
 }
 
+void printArray(ObjArray* array) {
+    printf("[ ");
+    if (array->array.count == 0) {
+        printf("]");
+        return;
+    }
+    Value* values = array->array.values;
+    int i;
+    for (i = 0; i < array->array.count - 1; i++) {
+        printValue(values[i]);
+        printf(", ");
+    }
+    printValue(values[i]);
+    printf(" ]");
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_STRING:
@@ -112,32 +128,116 @@ void printObject(Value value) {
         case OBJ_HASHMAP:
             printf("<map>");
             break;
+        case OBJ_ARRAY:
+            printArray(AS_ARRAY(value));
+            break;
         case OBJ_VARIABLE:
             printf("Variable");
             break;
     }
 }
 
-ObjString* valueToString(Value value) {
-    if (IS_STRING(value)) {
-        return AS_STRING(value);
+static Value arrayToString(ObjArray* array) {
+    if (array->array.count == 0) {
+        return OBJ_VAL(copyString("[]", 2));
     }
 
-    if (IS_BOOL(value)) {
-        if (AS_BOOL(value)) {
-            return copyString("true", 4);
-        } else {
-            return copyString("false", 5);
+    int capacity = 64;
+    int length = 0;
+    char* chars = ALLOCATE(char, capacity);
+
+    chars[length++] = '[';
+
+    for (int i = 0; i < array->array.count; i++) {
+        Value value = array->array.values[i];
+
+        ObjString* string = AS_STRING(valueToString(value));
+
+        int strLength = string->length;
+
+        while (length + strLength + 3 >= capacity) {
+            int oldCapacity = capacity;
+            capacity *= 2;
+            chars = GROW_ARRAY(char, chars, oldCapacity, capacity);
+        }
+
+        memcpy(chars + length, string->chars, strLength);
+        length += strLength;
+
+        if (i != array->array.count - 1) {
+            chars[length++] = ',';
+            chars[length++] = ' ';
         }
     }
 
-    if (IS_NUMBER(value)) {
-        char buffer[32];
-        int len = snprintf(buffer, sizeof(buffer), "%g", AS_NUMBER(value));
-        return copyString(buffer, len);
+    chars[length++] = ']';
+    chars[length] = '\0';
+
+    ObjString* result = takeString(chars, length);
+    return OBJ_VAL(result);
+}
+
+Value valueToString(Value value) {
+    char buffer[32];
+
+    if (IS_BOOL(value)) {
+        return OBJ_VAL(copyString(AS_BOOL(value) ? "true" : "false",
+                                  AS_BOOL(value) ? 4 : 5));
     }
 
-    return copyString("null", 4);
+    if (IS_NULL(value)) {
+        return OBJ_VAL(copyString("null", 4));
+    }
+
+    if (IS_NUMBER(value)) {
+        int length =
+            snprintf(buffer, sizeof(buffer), "%.15g", AS_NUMBER(value));
+        return OBJ_VAL(copyString(buffer, length));
+    }
+
+    Obj* obj = AS_OBJ(value);
+
+    switch (obj->type) {
+        case OBJ_STRING:
+            return value;
+
+        case OBJ_FUNCTION:
+        case OBJ_CLOSURE:
+            return OBJ_VAL(copyString("<fn>", 4));
+
+        case OBJ_NATIVE:
+            return OBJ_VAL(copyString("<native fn>", 11));
+
+        case OBJ_UPVALUE:
+            return OBJ_VAL(copyString("<upvalue>", 9));
+
+        case OBJ_VARIABLE:
+            return OBJ_VAL(copyString("<variable>", 10));
+
+        case OBJ_CLASS: {
+            ObjClass* klass = (ObjClass*)obj;
+            return OBJ_VAL(copyString(klass->name->chars, klass->name->length));
+        }
+
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = (ObjInstance*)obj;
+
+            char buffer[256];
+            int length = snprintf(buffer, sizeof(buffer), "%s instance",
+                                  instance->klass->name->chars);
+
+            return OBJ_VAL(copyString(buffer, length));
+        }
+
+        case OBJ_BOUND_METHOD:
+            return OBJ_VAL(copyString("<bound method>", 14));
+        case OBJ_HASHMAP:
+            return OBJ_VAL(copyString("<map>", 5));
+        case OBJ_ARRAY:
+            return arrayToString(AS_ARRAY(value));
+    }
+
+    return NULL_VAL;
 }
 
 ObjVariable* newVariable(Value value, bool isConst) {
@@ -210,4 +310,10 @@ ObjHashMap* newHashMap() {
     ObjHashMap* hashMap = ALLOCATE_OBJ(ObjHashMap, OBJ_HASHMAP);
     initTable(&hashMap->map);
     return hashMap;
+}
+
+ObjArray* newArray() {
+    ObjArray* array = ALLOCATE_OBJ(ObjArray, OBJ_ARRAY);
+    initValueArray(&array->array);
+    return array;
 }

@@ -229,8 +229,8 @@ static bool isFalsey(Value value) {
 }
 
 static void concatenate() {
-    ObjString* b = valueToString(peek(0));
-    ObjString* a = valueToString(peek(1));
+    ObjString* b = AS_STRING(valueToString(peek(0)));
+    ObjString* a = AS_STRING(valueToString(peek(1)));
 
     int length = a->length + b->length;
     char* chars = ALLOCATE(char, length + 1);

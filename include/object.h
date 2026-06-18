@@ -16,7 +16,9 @@
 #define IS_INSTANCE(value) isObjType(value, OBJ_INSTANCE)
 #define IS_BOUND_METHOD(value) isObjType(value, OBJ_BOUND_METHOD)
 #define IS_HASHMAP(value) isObjType(value, OBJ_HASHMAP)
+#define IS_ARRAY(value) isObjType(value, OBJ_ARRAY)
 
+#define AS_ARRAY(value) ((ObjArray*)AS_OBJ(value))
 #define AS_HASHMAP(value) ((ObjHashMap*)AS_OBJ(value))
 #define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_INSTANCE(value) ((ObjInstance*)AS_OBJ(value))
@@ -38,7 +40,8 @@ typedef enum {
     OBJ_CLASS,
     OBJ_INSTANCE,
     OBJ_BOUND_METHOD,
-    OBJ_HASHMAP
+    OBJ_HASHMAP,
+    OBJ_ARRAY
 } ObjType;
 
 struct Obj {
@@ -105,6 +108,11 @@ typedef struct {
     Table map;
 } ObjHashMap;
 
+typedef struct {
+    Obj obj;
+    ValueArray array;
+} ObjArray;
+
 typedef Value (*NativeFn)(int argCount, Value* args);
 
 typedef struct {
@@ -120,12 +128,15 @@ ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
 ObjHashMap* newHashMap();
+ObjArray* newArray();
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
 ObjUpvalue* newUpvalue(Value* slot);
 void printObject(Value value);
-ObjString* valueToString(Value value);
+Value valueToString(Value value);
+
+void printArray(ObjArray* array);
 
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
