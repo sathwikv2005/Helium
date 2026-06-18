@@ -167,7 +167,8 @@ static void freeObject(Obj* object) {
         case OBJ_HASHMAP: {
             ObjHashMap* hashMap = (ObjHashMap*)object;
             freeTable(&hashMap->map);
-            FREE(OBJ_HASHMAP, object);
+            FREE(ObjHashMap, object);
+            break;
         }
         case OBJ_NATIVE:
             FREE(ObjNative, object);
