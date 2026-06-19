@@ -19,8 +19,9 @@ jobs:
           python-version: '3.12'
 
       - name: Build Helium
+        shell: cmd
         run: |
-          gcc src/*.c -O3 -o helium.exe
+          build.bat
 
       - name: Run Tests
         run: |
