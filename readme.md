@@ -65,13 +65,15 @@ debug_build.bat
 ### Manual Build
 
 ```bash
-gcc src/*.c -o helium -O3
+cmake -B build -G "MinGW Makefiles"
+cmake --build build --target helium
 ```
 
 For a debug build:
 
 ```bash
-gcc src/*.c -o helium -O3 -DHELIUM_DEBUG
+cmake -B build -G "MinGW Makefiles"
+cmake --build build --target debug
 ```
 
 ---
@@ -110,6 +112,6 @@ python tools/tester.py
 
 ## Benchmarks
 
-> Helium currently performs on par with Ruby on several benchmarks, and outperforms Python and Perl. Startup time is particularly strong, with Helium launching faster than all tested languages.
+> Helium currently outperforms Ruby, Python, and Perl across the benchmark suite. Startup time is particularly strong, with Helium launching faster than all tested languages.
 
 Performance benchmark results comparing Helium with other scripting languages can be found [here](benchmarks/results.md).
