@@ -98,34 +98,6 @@ static void emitPostFixIndexUpdate() {
     updateState.currentUpdate = UPDATE_NONE;
 }
 
-void instanceIndex(bool canAssign) {
-    expression();
-    consume(TOKEN_RIGHT_SQUARE, "Expect ']' after index.");
-
-    updateState.target = UPDATE_TARGET_INDEX;
-    if (updateState.currentUpdate != UPDATE_NONE) {
-        return;
-    }
-
-    TokenType assignOp = canAssign ? matchAssignmentOperator() : TOKEN_ERROR;
-
-    if (assignOp != TOKEN_ERROR) {
-        if (assignOp != TOKEN_EQUAL) {
-            emitByte(OP_DUP2);
-            emitByte(OP_GET_INDEX);
-        }
-
-        expression();
-
-        emitOpByte(assignOp);
-        emitByte(OP_SET_INDEX);
-
-    } else if (parser.current.type != TOKEN_PLUS_PLUS &&
-               parser.current.type != TOKEN_MINUS_MINUS) {
-        emitByte(OP_GET_INDEX);
-    }
-}
-
 void preFixIncrement(bool canAssign) {
     if (parser.current.type != TOKEN_IDENTIFIER) {
         error("Invalid increment target.");
