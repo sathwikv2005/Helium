@@ -1,2 +1,3 @@
 @echo off
-gcc src/* -o helium.exe -O3
+cmake -B build -G "MinGW Makefiles"
+cmake --build build --target helium

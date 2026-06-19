@@ -10,3 +10,7 @@ report.txt
 
 # local test files
 test.he
+
+#cmake
+build/
+compile_commands.json
