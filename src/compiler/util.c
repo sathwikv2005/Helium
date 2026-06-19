@@ -160,3 +160,34 @@ TokenType matchAssignmentOperator() {
             return TOKEN_ERROR;
     }
 }
+
+bool identifiersEqual(Token* a, Token* b) {
+    if (a->length != b->length) return false;
+    return memcmp(a->start, b->start, a->length) == 0;
+}
+
+void emitPopToCount(int targetCount) {
+    for (int i = current->localCount - 1; i >= targetCount; i--) {
+        if (current->locals[i].isCaptured) {
+            emitByte(OP_CLOSE_UPVALUE);
+        } else
+            emitByte(OP_POP);
+    }
+}
+
+void emitSetBytes(uint8_t setOp, uint8_t getOp, uint8_t arg,
+                  TokenType assignOp) {
+    if (assignOp != TOKEN_EQUAL) {
+        emitBytes(getOp, arg);
+    }
+    if (assignOp == TOKEN_PLUS_PLUS || assignOp == TOKEN_MINUS_MINUS) {
+        emitByte(OP_DUP);
+        emitConstant(NUMBER_VAL(1));
+    } else {
+        expression();
+    }
+    emitOpByte(assignOp);
+    emitBytes(setOp, (uint8_t)arg);
+    if (assignOp == TOKEN_PLUS_PLUS || assignOp == TOKEN_MINUS_MINUS)
+        emitByte(OP_POP);
+}

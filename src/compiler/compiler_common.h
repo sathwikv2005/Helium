@@ -127,6 +127,7 @@ extern ClassCompiler* currentClass;
 void initCompiler(Compiler* compiler, FunctionType type);
 ObjFunction* endCompiler();
 
+// util
 void advance();
 void consume(TokenType type, const char* message);
 bool check(TokenType type);
@@ -142,7 +143,12 @@ uint8_t makeConstant(Value value);
 uint8_t identifierConstant(Token* name);
 Token syntheticToken(const char* text);
 TokenType matchAssignmentOperator();
+bool identifiersEqual(Token* a, Token* b);
+void emitPopToCount(int targetCount);
+void emitSetBytes(uint8_t setOp, uint8_t getOp, uint8_t arg,
+                  TokenType assignOp);
 
+// expression
 void expression();
 void grouping(bool canAssign);
 void number(bool canAssign);
@@ -168,8 +174,27 @@ void hashMap(bool canAssign);
 void namedVariable(Token name, bool canAssign);
 void emitOpByte(uint8_t op);
 
+// statement
+void statement();
+
+// declaration
+void declaration();
+
+// variable
+void variable(bool canAssign);
+void namedVariable(Token name, bool canAssign);
+void addLocal(Token name, bool isConst);
+int resolveUpvalue(Compiler* compiler, Token* name);
+int resolveLocal(Compiler* compiler, Token* name);
+void defineVariable(uint8_t global, bool isConst);
+void markInitialized();
+uint8_t parseVariable(const char* errorMessage, bool isConst);
+void declareVariable(bool isConst);
+
+// parser
 void parsePrecedence(Precedence precedence);
 Chunk* currentChunk();
+void synchronize();
 
 uint8_t argumentList();
 
