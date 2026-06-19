@@ -17,9 +17,9 @@ void resetUpdateState() {
     updateState.currentUpdate = UPDATE_NONE;
 }
 
-static void beginScope() { current->scopeDepth++; }
+void beginScope() { current->scopeDepth++; }
 
-static void endScope() {
+void endScope() {
     current->scopeDepth--;
 
     while (current->localCount > 0 &&
@@ -31,21 +31,6 @@ static void endScope() {
             emitByte(OP_POP);
         current->localCount--;
     }
-}
-
-uint8_t argumentList() {
-    uint8_t argCount = 0;
-    if (!check(TOKEN_RIGHT_PAREN)) {
-        do {
-            expression();
-            if (argCount == 255) {
-                error("Can't have more than 255 arguments.");
-            }
-            argCount++;
-        } while (match(TOKEN_COMMA));
-    }
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
-    return argCount;
 }
 
 static void emitUpdateBytes() {
@@ -238,136 +223,12 @@ void postFixDecrement(bool canAssign) {
     updateState = old;
 }
 
-static void block() {
+void block() {
     while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
         declaration();
     }
 
     consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
-}
-
-void function(FunctionType type) {
-    Compiler compiler;
-    initCompiler(&compiler, type);
-    beginScope();
-
-    consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
-
-    if (!check(TOKEN_RIGHT_PAREN)) {
-        do {
-            current->function->arity++;
-            if (current->function->arity > 255) {
-                errorAtCurrent("Can't have more than 255 parameters.");
-            }
-            uint8_t constant = parseVariable("Expect parameter name.", false);
-            defineVariable(constant, false);
-        } while (match(TOKEN_COMMA));
-    }
-
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
-    consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
-    block();
-
-    ObjFunction* function = endCompiler();
-    emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
-
-    for (int i = 0; i < function->upvalueCount; i++) {
-        emitBytes(compiler.upvalues[i].isLocal ? 1 : 0,
-                  compiler.upvalues[i].index);
-    }
-}
-
-static void method() {
-    consume(TOKEN_IDENTIFIER, "Expect method name.");
-    uint8_t constant = identifierConstant(&parser.previous);
-    FunctionType type = TYPE_METHOD;
-    if (parser.previous.length == 4 &&
-        memcmp(parser.previous.start, "init", 4) == 0) {
-        type = TYPE_INITIALIZER;
-    }
-    function(type);
-    emitBytes(OP_METHOD, constant);
-}
-
-static void classDeclaration() {
-    consume(TOKEN_IDENTIFIER, "Expect class name.");
-    Token className = parser.previous;
-    uint8_t nameConstant = identifierConstant(&parser.previous);
-    declareVariable(true);
-
-    emitBytes(OP_CLASS, nameConstant);
-    defineVariable(nameConstant, true);
-
-    ClassCompiler classCompiler;
-    classCompiler.name = parser.previous;
-    classCompiler.hasSuperclass = false;
-    classCompiler.enclosing = currentClass;
-    currentClass = &classCompiler;
-
-    if (match(TOKEN_LESS)) {
-        consume(TOKEN_IDENTIFIER, "Expect superclass name.");
-        variable(false);
-        if (identifiersEqual(&className, &parser.previous)) {
-            error("A class can't inherit from itself.");
-        }
-
-        beginScope();
-        addLocal(syntheticToken("super"), true);
-        defineVariable(0, true);
-
-        namedVariable(className, false);
-        emitByte(OP_INHERIT);
-        classCompiler.hasSuperclass = true;
-    }
-
-    namedVariable(className, false);
-    consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
-    while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
-        method();
-    }
-    consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
-    emitByte(OP_POP);
-
-    if (classCompiler.hasSuperclass) {
-        endScope();
-    }
-
-    currentClass = currentClass->enclosing;
-}
-
-static void varDeclaration() {
-    uint8_t global = parseVariable("Expect variable name.", false);
-
-    if (match(TOKEN_EQUAL))
-        expression();
-    else
-        emitByte(OP_NULL);
-
-    consume(TOKEN_SEMICOLON, "Expect ';' after var declaration");
-
-    defineVariable(global, false);
-}
-
-static void constDeclaration() {
-    uint8_t global = parseVariable("Expect variable name.", true);
-
-    if (match(TOKEN_EQUAL))
-        expression();
-    else {
-        error("Const variable must be initialized.");
-        emitByte(OP_NULL);
-    }
-
-    consume(TOKEN_SEMICOLON, "Expect ';' after const declaration");
-
-    defineVariable(global, true);
-}
-
-static void functionDeclaration() {
-    uint8_t global = parseVariable("Expect function name.", true);
-    markInitialized();
-    function(TYPE_FUNCTION);
-    defineVariable(global, true);
 }
 
 static void expressionStatement() {
@@ -537,22 +398,6 @@ static void returnStatement() {
     }
 }
 
-void declaration() {
-    if (match(TOKEN_CLASS)) {
-        classDeclaration();
-    } else if (match(TOKEN_FUNCTION)) {
-        functionDeclaration();
-    } else if (match(TOKEN_VAR)) {
-        varDeclaration();
-    } else if (match(TOKEN_CONST)) {
-        constDeclaration();
-    } else {
-        statement();
-    }
-    // recover from panic mode.
-    if (parser.panicMode) synchronize();
-}
-
 void statement() {
     if (match(TOKEN_PRINT))
         printStatement();
@@ -574,6 +419,22 @@ void statement() {
         endScope();
     } else
         expressionStatement();
+}
+
+void declaration() {
+    if (match(TOKEN_CLASS)) {
+        classDeclaration();
+    } else if (match(TOKEN_FUNCTION)) {
+        functionDeclaration();
+    } else if (match(TOKEN_VAR)) {
+        varDeclaration();
+    } else if (match(TOKEN_CONST)) {
+        constDeclaration();
+    } else {
+        statement();
+    }
+    // recover from panic mode.
+    if (parser.panicMode) synchronize();
 }
 
 void initCompiler(Compiler* compiler, FunctionType type) {

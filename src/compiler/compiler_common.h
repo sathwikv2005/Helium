@@ -176,9 +176,14 @@ void emitOpByte(uint8_t op);
 
 // statement
 void statement();
+void block();
 
 // declaration
 void declaration();
+void classDeclaration();
+void varDeclaration();
+void constDeclaration();
+void functionDeclaration();
 
 // variable
 void variable(bool canAssign);
@@ -196,9 +201,15 @@ void parsePrecedence(Precedence precedence);
 Chunk* currentChunk();
 void synchronize();
 
+// functions
 uint8_t argumentList();
+void function(FunctionType type);
+void method();
 
+// compiler
 void resetUpdateState();
+void beginScope();
+void endScope();
 
 void errorAt(Token* token, const char* message);
 void error(const char* message);
