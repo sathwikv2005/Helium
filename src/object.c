@@ -312,8 +312,15 @@ ObjHashMap* newHashMap() {
     return hashMap;
 }
 
-ObjArray* newArray() {
+ObjArray* newArray(int capacity) {
     ObjArray* array = ALLOCATE_OBJ(ObjArray, OBJ_ARRAY);
-    initValueArray(&array->array);
+    initValueArrayWithCapacity(&array->array, capacity);
     return array;
+}
+
+ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type) {
+    ObjArrayMethod* arrayMethod =
+        ALLOCATE_OBJ(ObjArrayMethod, OBJ_ARRAY_METHOD);
+    arrayMethod->type = type;
+    arrayMethod->receiver = array;
 }

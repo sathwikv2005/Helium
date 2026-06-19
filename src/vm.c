@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../include/common.h"
@@ -59,7 +60,15 @@ void initVM() {
     initTable(&vm.strings);
 
     vm.initString = NULL;
+    vm.pushString = NULL;
+    vm.popString = NULL;
+    vm.lengthString = NULL;
+    vm.sortString = NULL;
     vm.initString = copyString("init", 4);
+    vm.pushString = copyString("push", 4);
+    vm.popString = copyString("pop", 3);
+    vm.lengthString = copyString("length", 6);
+    vm.sortString = copyString("sort", 4);
 
     mapNatives();
 }
@@ -88,6 +97,127 @@ static bool call(ObjClosure* closure, int argCount) {
     frame->ip = closure->function->chunk.code;
     frame->slots = vm.stackTop - argCount - 1;
     return true;
+}
+
+static bool sortDescending = false;
+
+static int compareValues(const void* a, const void* b) {
+    double da = AS_NUMBER(*(const Value*)a);
+    double db = AS_NUMBER(*(const Value*)b);
+
+    int result = (da > db) - (da < db);
+
+    return sortDescending ? -result : result;
+}
+
+static bool arrayMethods(ObjArray* receiver, int argCount,
+                         ArrayMethodType type) {
+    switch (type) {
+        case ARRAY_METHOD_PUSH:
+            if (argCount != 1) {
+                runtimeError("push() expects 1 argument.");
+                return false;
+            }
+
+            writeValueArray(&receiver->array, peek(0));
+
+            vm.stackTop -= argCount + 1;
+            push(OBJ_VAL(receiver));
+            return true;
+
+        case ARRAY_METHOD_POP: {
+            if (argCount > 1) {
+                runtimeError("pop() expects 0 or 1 arguments.");
+                return false;
+            }
+            int offset = 0;
+
+            if (argCount != 0) {
+                Value arg = vm.stackTop[-1];
+                if (!IS_NUMBER(arg)) {
+                    runtimeError("pop() expects a number.");
+                    return false;
+                }
+                double index = AS_NUMBER(arg);
+
+                if (index < 0 || index != (int)index) {
+                    runtimeError(
+                        "Array index must be a non-negative "
+                        "integer");
+                    return false;
+                }
+
+                offset = (int)index;
+            }
+            if (offset >= receiver->array.count) {
+                runtimeError("Array index out of bounds.");
+                return false;
+            }
+            receiver->array.count -= (1 + offset);
+
+            vm.stackTop -= argCount + 1;
+
+            push(OBJ_VAL(receiver));
+            return true;
+        }
+        case ARRAY_METHOD_LENGTH: {
+            if (argCount != 0) {
+                runtimeError("lenght() expects no arguments.");
+                return false;
+            }
+            vm.stackTop -= argCount + 1;
+            push(NUMBER_VAL(receiver->array.count));
+            return true;
+        }
+        case ARRAY_METHOD_SORT: {
+            if (argCount > 1) {
+                runtimeError("sort() expects 0 or 1 arguments.");
+                return false;
+            }
+            sortDescending = false;
+            ValueArray* array = &receiver->array;
+            for (int i = 0; i < array->count; i++) {
+                if (!IS_NUMBER(array->values[i])) {
+                    runtimeError(
+                        "Array.sort() only supports arrays of numbers.");
+                    return false;
+                }
+            }
+            if (argCount == 1) {
+                Value arg = vm.stackTop[-1];
+
+                if (!IS_BOOL(arg)) {
+                    runtimeError("sort() expects a boolean.");
+                    return false;
+                }
+
+                sortDescending = AS_BOOL(arg);
+            }
+            qsort(array->values, array->count, sizeof(Value), compareValues);
+            vm.stackTop -= argCount + 1;
+            push(OBJ_VAL(receiver));
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool arrayMethodsFromName(ObjArray* receiver, int argCount,
+                                 ObjString* method) {
+    if (method == vm.pushString) {
+        return arrayMethods(receiver, argCount, ARRAY_METHOD_PUSH);
+    }
+    if (method == vm.popString) {
+        return arrayMethods(receiver, argCount, ARRAY_METHOD_POP);
+    }
+    if (method == vm.lengthString) {
+        return arrayMethods(receiver, argCount, ARRAY_METHOD_LENGTH);
+    }
+    if (method == vm.sortString) {
+        return arrayMethods(receiver, argCount, ARRAY_METHOD_SORT);
+    }
+    runtimeError("Undefined array method '%s'.", method->chars);
+    return false;
 }
 
 static bool callValue(Value callee, int argCount) {
@@ -119,6 +249,10 @@ static bool callValue(Value callee, int argCount) {
                     return false;
                 }
                 return true;
+            }
+            case OBJ_ARRAY_METHOD: {
+                ObjArrayMethod* method = AS_ARRAY_METHOD(callee);
+                return arrayMethods(method->receiver, argCount, method->type);
             }
             default:
                 break;  // Non-callable object type.
@@ -401,6 +535,12 @@ static InterpretResult run() {
                 push(OBJ_VAL(hashMap));
                 break;
             }
+            case OP_CREATE_ARRAY: {
+                uint8_t capacity = READ_BYTE();
+                ObjArray* array = newArray((int)capacity);
+                push(OBJ_VAL(array));
+                break;
+            }
 
             case OP_GET_PROPERTY: {
                 if (!IS_OBJ(peek(0))) {
@@ -429,6 +569,22 @@ static InterpretResult run() {
                         } else {
                             pop();
                             push(NULL_VAL);  // return null as default
+                        }
+                        break;
+                    }
+                    case OBJ_ARRAY: {
+                        ObjArray* array = (ObjArray*)target;
+                        if (name == vm.pushString) {
+                            pop();  // remove array
+                            push(OBJ_VAL(
+                                newArrayMethod(array, ARRAY_METHOD_PUSH)));
+                        } else if (name == vm.popString) {
+                            pop();
+                            push(OBJ_VAL(
+                                newArrayMethod(array, ARRAY_METHOD_POP)));
+                        } else {
+                            RUNTIME_ERROR("Unknown array method %s",
+                                          name->chars);
                         }
                         break;
                     }
@@ -469,6 +625,16 @@ static InterpretResult run() {
             case OP_INVOKE: {
                 ObjString* method = READ_STRING();
                 int argCount = READ_BYTE();
+                Value receiver = peek(argCount);
+
+                if (IS_ARRAY(receiver)) {
+                    if (!arrayMethodsFromName(AS_ARRAY(receiver), argCount,
+                                              method)) {
+                        RUNTIME_ERROR("Undefined array method '%s'.",
+                                      method->chars);
+                    }
+                    break;
+                }
                 frame->ip = ip;
                 if (!invoke(method, argCount)) {
                     return INTERPRET_RUNTIME_ERROR;
@@ -506,6 +672,27 @@ static InterpretResult run() {
                         }
                         ObjHashMap* hashMap = (ObjHashMap*)target;
                         get = tableGet(&hashMap->map, AS_STRING(key), &value);
+                        break;
+                    }
+                    case OBJ_ARRAY: {
+                        if (!IS_NUMBER(key)) {
+                            RUNTIME_ERROR("Index must be a number");
+                        }
+                        double index = AS_NUMBER(key);
+
+                        if (index < 0 || index != (int)index) {
+                            RUNTIME_ERROR(
+                                "Array index must be a non-negative integer");
+                        }
+
+                        int i = (int)index;
+                        ObjArray* array = (ObjArray*)target;
+
+                        if (i >= array->array.count) {
+                            RUNTIME_ERROR("Array index out of bounds");
+                        }
+                        value = array->array.values[i];
+                        get = true;
                         break;
                     }
                     default: {
@@ -556,6 +743,26 @@ static InterpretResult run() {
                         tableSet(&hashMap->map, AS_STRING(key), value);
                         break;
                     }
+                    case OBJ_ARRAY: {
+                        if (!IS_NUMBER(key)) {
+                            RUNTIME_ERROR("Index must be a number");
+                        }
+                        double index = AS_NUMBER(key);
+
+                        if (index < 0 || index != (int)index) {
+                            RUNTIME_ERROR(
+                                "Array index must be a non-negative integer");
+                        }
+
+                        int i = (int)index;
+                        ObjArray* array = (ObjArray*)target;
+
+                        if (i >= array->array.count) {
+                            RUNTIME_ERROR("Array index out of bounds");
+                        }
+                        array->array.values[i] = value;
+                        break;
+                    }
                     default: {
                         RUNTIME_ERROR(
                             "Only instances, maps and arrays support "
@@ -570,6 +777,17 @@ static InterpretResult run() {
 
                 push(value);
 
+                break;
+            }
+            case OP_PUSH: {
+                Value value = peek(0);
+                if (!IS_ARRAY(peek(1))) {
+                    RUNTIME_ERROR("Only arrays support push.");
+                }
+                ObjArray* array = AS_ARRAY(peek(1));
+
+                writeValueArray(&array->array, value);
+                pop();  // value
                 break;
             }
             case OP_INHERIT: {

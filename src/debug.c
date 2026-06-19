@@ -82,6 +82,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
             return constantInstruction("OP_CONSTANT", chunk, offset);
         case OP_CREATE_MAP:
             return simpleInstruction("OP_CREATE_MAP", offset);
+        case OP_CREATE_ARRAY:
+            return constantInstruction("OP_CREATE_ARRAY", chunk, offset);
         case OP_FALSE:
             return simpleInstruction("OP_FALSE", offset);
         case OP_TRUE:
@@ -114,6 +116,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
             return constantInstruction("OP_DEFINE_GLOBAL_CONST", chunk, offset);
         case OP_SET_GLOBAL:
             return constantInstruction("OP_SET_GLOBAL", chunk, offset);
+        case OP_PUSH:
+            return simpleInstruction("OP_PUSH", offset);
         case OP_EQUAL:
             return simpleInstruction("OP_EQUAL", offset);
         case OP_GREATER:

@@ -17,7 +17,9 @@
 #define IS_BOUND_METHOD(value) isObjType(value, OBJ_BOUND_METHOD)
 #define IS_HASHMAP(value) isObjType(value, OBJ_HASHMAP)
 #define IS_ARRAY(value) isObjType(value, OBJ_ARRAY)
+#define IS_ARRAY_METHOD(value) isObjType(value, OBJ_ARRAY_METHOD)
 
+#define AS_ARRAY_METHOD(value) ((ObjArrayMethod*)AS_OBJ(value))
 #define AS_ARRAY(value) ((ObjArray*)AS_OBJ(value))
 #define AS_HASHMAP(value) ((ObjHashMap*)AS_OBJ(value))
 #define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))
@@ -41,7 +43,8 @@ typedef enum {
     OBJ_INSTANCE,
     OBJ_BOUND_METHOD,
     OBJ_HASHMAP,
-    OBJ_ARRAY
+    OBJ_ARRAY,
+    OBJ_ARRAY_METHOD,
 } ObjType;
 
 struct Obj {
@@ -113,6 +116,19 @@ typedef struct {
     ValueArray array;
 } ObjArray;
 
+typedef enum {
+    ARRAY_METHOD_PUSH,
+    ARRAY_METHOD_POP,
+    ARRAY_METHOD_SORT,
+    ARRAY_METHOD_LENGTH,
+} ArrayMethodType;
+
+typedef struct {
+    Obj obj;
+    ObjArray* receiver;
+    ArrayMethodType type;
+} ObjArrayMethod;
+
 typedef Value (*NativeFn)(int argCount, Value* args);
 
 typedef struct {
@@ -128,7 +144,8 @@ ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
 ObjHashMap* newHashMap();
-ObjArray* newArray();
+ObjArray* newArray(int capacity);
+ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type);
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
