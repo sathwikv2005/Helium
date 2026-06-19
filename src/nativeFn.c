@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "../include/memory.h"
+#include "../include/object.h"
 #include "../include/vm.h"
 
 static void defineNative(const char* name, NativeFn function) {
@@ -83,65 +84,7 @@ static Value stringNative(int argCount, Value* args) {
         return NULL_VAL;
     }
 
-    Value value = args[0];
-    char buffer[32];
-
-    if (IS_BOOL(value)) {
-        return OBJ_VAL(copyString(AS_BOOL(value) ? "true" : "false",
-                                  AS_BOOL(value) ? 4 : 5));
-    }
-
-    if (IS_NULL(value)) {
-        return OBJ_VAL(copyString("null", 4));
-    }
-
-    if (IS_NUMBER(value)) {
-        int length =
-            snprintf(buffer, sizeof(buffer), "%.15g", AS_NUMBER(value));
-        return OBJ_VAL(copyString(buffer, length));
-    }
-
-    Obj* obj = AS_OBJ(value);
-
-    switch (obj->type) {
-        case OBJ_STRING:
-            return value;
-
-        case OBJ_FUNCTION:
-        case OBJ_CLOSURE:
-            return OBJ_VAL(copyString("<fn>", 4));
-
-        case OBJ_NATIVE:
-            return OBJ_VAL(copyString("<native fn>", 11));
-
-        case OBJ_UPVALUE:
-            return OBJ_VAL(copyString("<upvalue>", 9));
-
-        case OBJ_VARIABLE:
-            return OBJ_VAL(copyString("<variable>", 10));
-
-        case OBJ_CLASS: {
-            ObjClass* klass = (ObjClass*)obj;
-            return OBJ_VAL(copyString(klass->name->chars, klass->name->length));
-        }
-
-        case OBJ_INSTANCE: {
-            ObjInstance* instance = (ObjInstance*)obj;
-
-            char buffer[256];
-            int length = snprintf(buffer, sizeof(buffer), "%s instance",
-                                  instance->klass->name->chars);
-
-            return OBJ_VAL(copyString(buffer, length));
-        }
-
-        case OBJ_BOUND_METHOD:
-            return OBJ_VAL(copyString("<bound method>", 14));
-        case OBJ_HASHMAP:
-            return OBJ_VAL(copyString("<map>", 5));
-    }
-
-    return NULL_VAL;
+    return valueToString(args[0]);
 }
 
 static Value lenNative(int argCount, Value* args) {
@@ -161,6 +104,9 @@ static Value lenNative(int argCount, Value* args) {
 
         case OBJ_HASHMAP:
             return NUMBER_VAL(AS_HASHMAP(args[0])->map.size);
+
+        case OBJ_ARRAY:
+            return NUMBER_VAL(AS_ARRAY(args[0])->array.count);
 
         default:
             runtimeError("Object has no length.");

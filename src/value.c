@@ -12,6 +12,12 @@ void initValueArray(ValueArray* array) {
     array->count = 0;
 }
 
+void initValueArrayWithCapacity(ValueArray* array, int capacity) {
+    array->capacity = capacity;
+    array->count = 0;
+    array->values = ALLOCATE(Value, capacity);
+}
+
 void writeValueArray(ValueArray* array, Value value) {
     if (array->capacity < array->count + 1) {
         int oldCapacity = array->capacity;

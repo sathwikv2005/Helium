@@ -948,12 +948,30 @@ static void hashMap(bool canAssign) {
     consume(TOKEN_RIGHT_BRACE, "Expect '}' at end of the map");
 }
 
+static void array(bool canAssign) {
+    emitByte(OP_CREATE_ARRAY);
+
+    int capacityOffset = currentChunk()->count;
+    emitByte(0);  // placeholder
+
+    int count = 0;
+    while (!check(TOKEN_RIGHT_SQUARE) && !check(TOKEN_EOF)) {
+        expression();
+        if (!check(TOKEN_RIGHT_SQUARE))
+            consume(TOKEN_COMMA, "Expect comma after value.");
+        emitByte(OP_PUSH);
+        count++;
+    }
+    consume(TOKEN_RIGHT_SQUARE, "Expect ']' at end of the array");
+    currentChunk()->code[capacityOffset] = count;
+}
+
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, call, PREC_CALL},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
     [TOKEN_LEFT_BRACE] = {hashMap, NULL, PREC_NONE},
     [TOKEN_RIGHT_BRACE] = {NULL, NULL, PREC_NONE},
-    [TOKEN_LEFT_SQUARE] = {NULL, instanceIndex, PREC_CALL},
+    [TOKEN_LEFT_SQUARE] = {array, instanceIndex, PREC_CALL},
     [TOKEN_RIGHT_SQUARE] = {NULL, NULL, PREC_NONE},
     [TOKEN_COMMA] = {NULL, NULL, PREC_NONE},
     [TOKEN_DOT] = {NULL, dot, PREC_CALL},

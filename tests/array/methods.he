@@ -1,0 +1,26 @@
+var a = [];
+a.push(1);
+print a;
+
+var a = [];
+a.push(1).push(2).push(3);
+print a;
+
+var a = [1, 2, 3];
+a.pop();
+print a;
+
+var a = [1, 2, 3];
+a.pop(2);
+print a;
+
+var a = [1, 2, 3];
+print a.length();
+
+var a = [5, 3, 1, 4, 2];
+a.sort();
+print a;
+
+var a = [5, 3, 1, 4, 2];
+a.sort(true);
+print a;

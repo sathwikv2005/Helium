@@ -114,6 +114,16 @@ static void blackenObject(Obj* object) {
             markTable(&hashMap->map);
             break;
         }
+        case OBJ_ARRAY: {
+            ObjArray* array = (ObjArray*)object;
+            markArray(&array->array);
+            break;
+        }
+        case OBJ_ARRAY_METHOD: {
+            ObjArrayMethod* arrayMethod = (ObjArrayMethod*)object;
+            markObject((Obj*)arrayMethod->receiver);
+            break;
+        }
         case OBJ_NATIVE:
         case OBJ_STRING:
             break;
@@ -170,6 +180,16 @@ static void freeObject(Obj* object) {
             FREE(ObjHashMap, object);
             break;
         }
+        case OBJ_ARRAY: {
+            ObjArray* array = (ObjArray*)object;
+            freeValueArray(&array->array);
+            FREE(ObjArray, object);
+            break;
+        }
+        case OBJ_ARRAY_METHOD: {
+            FREE(ObjArrayMethod, object);
+            break;
+        }
         case OBJ_NATIVE:
             FREE(ObjNative, object);
             break;
@@ -207,6 +227,10 @@ static void markRoots() {
     markTable(&vm.globals);
     markCompilerRoots();
     markObject((Obj*)vm.initString);
+    markObject((Obj*)vm.pushString);
+    markObject((Obj*)vm.popString);
+    markObject((Obj*)vm.lengthString);
+    markObject((Obj*)vm.sortString);
 }
 
 static void traceReferences() {

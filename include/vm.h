@@ -53,6 +53,11 @@ typedef struct {
     Table globals;
 
     ObjString* initString;
+    ObjString* pushString;
+    ObjString* lengthString;
+    ObjString* sortString;
+    ObjString* popString;
+
     ObjUpvalue* openUpvalues;
 
     size_t bytesAllocated;
