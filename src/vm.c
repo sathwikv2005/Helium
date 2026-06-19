@@ -648,7 +648,8 @@ static InterpretResult run() {
 
                 if (!IS_OBJ(peek(0))) {
                     RUNTIME_ERROR(
-                        "Only instances, maps and arrays support indexing.");
+                        "Only instances, maps, arrays and strings support "
+                        "indexing.");
                 }
                 Value value;
                 Obj* target = AS_OBJ(peek(0));
@@ -695,9 +696,30 @@ static InterpretResult run() {
                         get = true;
                         break;
                     }
+                    case OBJ_STRING: {
+                        if (!IS_NUMBER(key)) {
+                            RUNTIME_ERROR("Index must be a number");
+                        }
+                        double index = AS_NUMBER(key);
+
+                        if (index < 0 || index != (int)index) {
+                            RUNTIME_ERROR(
+                                "String index must be a non-negative integer");
+                        }
+
+                        int i = (int)index;
+                        ObjString* string = (ObjString*)target;
+
+                        if (i >= string->length) {
+                            RUNTIME_ERROR("String index out of bounds");
+                        }
+                        value = OBJ_VAL(copyString(&string->chars[i], 1));
+                        get = true;
+                        break;
+                    }
                     default: {
                         RUNTIME_ERROR(
-                            "Only instances, maps and arrays support "
+                            "Only instances, maps, arrays and strings support "
                             "indexing.");
                         break;
                     }
@@ -720,7 +742,8 @@ static InterpretResult run() {
 
                 if (!IS_OBJ(peek(2))) {
                     RUNTIME_ERROR(
-                        "Only instances, maps and arrays support indexing.");
+                        "Only instances, maps and arrays support index "
+                        "assignment.");
                 }
                 Obj* target = AS_OBJ(peek(2));
                 switch (target->type) {
@@ -766,7 +789,7 @@ static InterpretResult run() {
                     default: {
                         RUNTIME_ERROR(
                             "Only instances, maps and arrays support "
-                            "indexing.");
+                            "index assignment.");
                         break;
                     }
                 }

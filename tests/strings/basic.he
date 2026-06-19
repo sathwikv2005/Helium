@@ -1,0 +1,10 @@
+var a = "test";
+print a;
+
+print a += " 123";
+
+print a + 1000;
+
+
+var a = "12345";
+print a[3];
