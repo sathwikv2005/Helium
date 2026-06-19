@@ -61,7 +61,8 @@ else()
 
     target_compile_options(profiler PRIVATE
         -pg
-        -O2
+        -g
+        -O0
     )
 
     target_link_options(helium PRIVATE
