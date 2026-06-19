@@ -123,6 +123,8 @@ ParseRule* getRule(TokenType type);
 
 extern Compiler* current;
 extern ClassCompiler* currentClass;
+extern LoopContext loopStack[64];
+extern int loopDepth;
 
 void initCompiler(Compiler* compiler, FunctionType type);
 ObjFunction* endCompiler();
@@ -177,6 +179,14 @@ void emitOpByte(uint8_t op);
 // statement
 void statement();
 void block();
+void expressionStatement();
+void ifStatement();
+void whileStatement();
+void forStatement();
+void breakStatement();
+void continueStatement();
+void printStatement();
+void returnStatement();
 
 // declaration
 void declaration();
