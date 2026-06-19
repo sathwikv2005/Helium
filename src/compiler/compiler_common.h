@@ -126,14 +126,20 @@ extern ClassCompiler* currentClass;
 extern LoopContext loopStack[64];
 extern int loopDepth;
 
-void initCompiler(Compiler* compiler, FunctionType type);
-ObjFunction* endCompiler();
-
 // util
+void errorAt(Token* token, const char* message);
+void error(const char* message);
+void errorAtCurrent(const char* message);
 void advance();
 void consume(TokenType type, const char* message);
 bool check(TokenType type);
 bool match(TokenType type);
+Token syntheticToken(const char* text);
+TokenType matchAssignmentOperator();
+bool identifiersEqual(Token* a, Token* b);
+uint8_t makeConstant(Value value);
+
+// emit
 void emitByte(uint8_t byte);
 void emitBytes(uint8_t byte1, uint8_t byte2);
 int emitJump(uint8_t instruction);
@@ -141,12 +147,8 @@ void emitLoop(int loopStart);
 void emitConstant(Value value);
 void patchJump(int offset);
 void emitReturn();
-uint8_t makeConstant(Value value);
-uint8_t identifierConstant(Token* name);
-Token syntheticToken(const char* text);
-TokenType matchAssignmentOperator();
-bool identifiersEqual(Token* a, Token* b);
 void emitPopToCount(int targetCount);
+void emitOpByte(uint8_t op);
 void emitSetBytes(uint8_t setOp, uint8_t getOp, uint8_t arg,
                   TokenType assignOp);
 
@@ -157,7 +159,6 @@ void number(bool canAssign);
 void string(bool canAssign);
 void unary(bool canAssign);
 void binary(bool canAssign);
-void variable(bool canAssign);
 void literal(bool canAssign);
 void and_(bool canAssign);
 void or_(bool canAssign);
@@ -167,14 +168,8 @@ void this_(bool canAssign);
 void call(bool canAssign);
 void dot(bool canAssign);
 void instanceIndex(bool canAssign);
-void preFixIncrement(bool canAssign);
-void postFixIncrement(bool canAssign);
-void preFixDecrement(bool canAssign);
-void postFixDecrement(bool canAssign);
 void array(bool canAssign);
 void hashMap(bool canAssign);
-void namedVariable(Token name, bool canAssign);
-void emitOpByte(uint8_t op);
 
 // statement
 void statement();
@@ -198,31 +193,38 @@ void functionDeclaration();
 // variable
 void variable(bool canAssign);
 void namedVariable(Token name, bool canAssign);
-void addLocal(Token name, bool isConst);
-int resolveUpvalue(Compiler* compiler, Token* name);
-int resolveLocal(Compiler* compiler, Token* name);
 void defineVariable(uint8_t global, bool isConst);
-void markInitialized();
 uint8_t parseVariable(const char* errorMessage, bool isConst);
-void declareVariable(bool isConst);
+uint8_t identifierConstant(Token* name);
 
-// parser
-void parsePrecedence(Precedence precedence);
-Chunk* currentChunk();
-void synchronize();
+// inplace update
+void preFixIncrement(bool canAssign);
+void postFixIncrement(bool canAssign);
+void preFixDecrement(bool canAssign);
+void postFixDecrement(bool canAssign);
 
-// functions
+// function
 uint8_t argumentList();
 void function(FunctionType type);
 void method();
 
-// compiler
-void resetUpdateState();
+// scope
 void beginScope();
 void endScope();
+void markInitialized();
+void declareVariable(bool isConst);
+void addLocal(Token name, bool isConst);
+int resolveLocal(Compiler* compiler, Token* name);
+int resolveUpvalue(Compiler* compiler, Token* name);
 
-void errorAt(Token* token, const char* message);
-void error(const char* message);
-void errorAtCurrent(const char* message);
+// parser
+void parsePrecedence(Precedence precedence);
+void synchronize();
+
+// compiler
+Chunk* currentChunk();
+void initCompiler(Compiler* compiler, FunctionType type);
+ObjFunction* endCompiler();
+void resetUpdateState();
 
 #endif
