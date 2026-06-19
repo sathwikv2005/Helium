@@ -3,6 +3,9 @@
 LoopContext loopStack[64];
 int loopDepth = 0;
 
+Parser parser;
+UpdateState updateState;
+
 Compiler* current = NULL;
 
 ClassCompiler* currentClass = NULL;

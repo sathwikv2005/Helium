@@ -80,7 +80,7 @@ typedef struct {
     bool isConst;
 } UpdateState;
 
-UpdateState updateState;
+extern UpdateState updateState;
 
 typedef enum {
     TYPE_FUNCTION,
@@ -108,7 +108,7 @@ typedef struct ClassCompiler {
 } ClassCompiler;
 
 extern ParseRule rules[];
-Parser parser;
+extern Parser parser;
 
 #define MAX_BREAKS 256
 typedef struct {
