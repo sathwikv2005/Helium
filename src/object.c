@@ -131,6 +131,9 @@ void printObject(Value value) {
         case OBJ_ARRAY:
             printArray(AS_ARRAY(value));
             break;
+        case OBJ_ARRAY_METHOD:
+            printf("<array method>");
+            break;
         case OBJ_VARIABLE:
             printf("Variable");
             break;
@@ -235,6 +238,8 @@ Value valueToString(Value value) {
             return OBJ_VAL(copyString("<map>", 5));
         case OBJ_ARRAY:
             return arrayToString(AS_ARRAY(value));
+        case OBJ_ARRAY_METHOD:
+            return OBJ_VAL(copyString("<array method>", 14));
     }
 
     return NULL_VAL;
@@ -323,4 +328,5 @@ ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type) {
         ALLOCATE_OBJ(ObjArrayMethod, OBJ_ARRAY_METHOD);
     arrayMethod->type = type;
     arrayMethod->receiver = array;
+    return arrayMethod;
 }
