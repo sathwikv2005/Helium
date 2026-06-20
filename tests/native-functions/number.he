@@ -1,0 +1,4 @@
+print number("123");
+print number("123.45");
+print number("-99");
+print number("1e3");

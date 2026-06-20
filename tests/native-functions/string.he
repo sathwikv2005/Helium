@@ -1,0 +1,6 @@
+print string(123);
+print string(123.45);
+print string(true);
+print string(false);
+print string(null);
+print string("hello");
