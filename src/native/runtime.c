@@ -38,8 +38,26 @@ static Value exitNative(int argCount, Value* args) {
     return NULL_VAL;
 }
 
+static Value memoryNative(int argCount, Value* args) {
+    if (argCount != 0) {
+        runtimeError("memory() expects no arguments");
+        return NULL_VAL;
+    }
+    return NUMBER_VAL((double)vm.bytesAllocated);
+}
+
+static Value memoryKBNative(int argCount, Value* args) {
+    if (argCount != 0) {
+        runtimeError("memoryKB() expects no arguments");
+        return NULL_VAL;
+    }
+    return NUMBER_VAL(((double)vm.bytesAllocated) / 1024.0);
+}
+
 void registerRuntimeNatives() {
     defineNative("throwError", throwErrorNative);
     defineNative("assert", assertNative);
     defineNative("exit", exitNative);
+    defineNative("memory", memoryNative);
+    defineNative("memoryKB", memoryKBNative);
 }
