@@ -226,11 +226,12 @@ static void markRoots() {
 
     markTable(&vm.globals);
     markCompilerRoots();
-    markObject((Obj*)vm.initString);
-    markObject((Obj*)vm.pushString);
-    markObject((Obj*)vm.popString);
-    markObject((Obj*)vm.lengthString);
-    markObject((Obj*)vm.sortString);
+
+    for (int i = 0; i < SPECIAL_COUNT; i++) {
+        if (vm.specialStrings[i] != NULL) {
+            markObject((Obj*)vm.specialStrings[i]);
+        }
+    }
 }
 
 static void traceReferences() {
