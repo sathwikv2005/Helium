@@ -2,6 +2,18 @@
 
 VM vm;
 
+static void initSpecialStrings() {
+    for (int i = 0; i < SPECIAL_COUNT; i++) {
+        vm.specialStrings[i] = NULL;
+    }
+
+    vm.specialStrings[SPECIAL_INIT] = copyString("init", 4);
+    vm.specialStrings[SPECIAL_PUSH] = copyString("push", 4);
+    vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);
+    vm.specialStrings[SPECIAL_LENGTH] = copyString("length", 6);
+    vm.specialStrings[SPECIAL_SORT] = copyString("sort", 4);
+}
+
 void initVM() {
     resetStack();
     vm.objects = NULL;
@@ -15,22 +27,12 @@ void initVM() {
     initTable(&vm.globals);
     initTable(&vm.strings);
 
-    vm.initString = NULL;
-    vm.pushString = NULL;
-    vm.popString = NULL;
-    vm.lengthString = NULL;
-    vm.sortString = NULL;
-    vm.initString = copyString("init", 4);
-    vm.pushString = copyString("push", 4);
-    vm.popString = copyString("pop", 3);
-    vm.lengthString = copyString("length", 6);
-    vm.sortString = copyString("sort", 4);
+    initSpecialStrings();
 
     mapNatives();
 }
 
 void freeVM() {
-    vm.initString = NULL;
     freeObjects();
     freeTable(&vm.strings);
     freeTable(&vm.globals);
@@ -232,11 +234,11 @@ static InterpretResult run() {
                     }
                     case OBJ_ARRAY: {
                         ObjArray* array = (ObjArray*)target;
-                        if (name == vm.pushString) {
+                        if (name == vm.specialStrings[SPECIAL_PUSH]) {
                             pop();  // remove array
                             push(OBJ_VAL(
                                 newArrayMethod(array, ARRAY_METHOD_PUSH)));
-                        } else if (name == vm.popString) {
+                        } else if (name == vm.specialStrings[SPECIAL_POP]) {
                             pop();
                             push(OBJ_VAL(
                                 newArrayMethod(array, ARRAY_METHOD_POP)));

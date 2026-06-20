@@ -103,16 +103,16 @@ bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type) {
 }
 
 bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method) {
-    if (method == vm.pushString) {
+    if (method == vm.specialStrings[SPECIAL_PUSH]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_PUSH);
     }
-    if (method == vm.popString) {
+    if (method == vm.specialStrings[SPECIAL_POP]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_POP);
     }
-    if (method == vm.lengthString) {
+    if (method == vm.specialStrings[SPECIAL_LENGTH]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_LENGTH);
     }
-    if (method == vm.sortString) {
+    if (method == vm.specialStrings[SPECIAL_SORT]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_SORT);
     }
     runtimeError("Undefined array method '%s'.", method->chars);
@@ -122,7 +122,7 @@ bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method) {
 void defineMethod(ObjString* name) {
     Value method = peek(0);
     ObjClass* klass = AS_CLASS(peek(1));
-    if (name == vm.initString) {
+    if (name == vm.specialStrings[SPECIAL_INIT]) {
         klass->initializer = AS_CLOSURE(method);
     } else {
         tableSet(&klass->methods, name, method);
