@@ -32,10 +32,11 @@ ObjUpvalue* captureUpvalue(Value* local);
 void closeUpvalues(Value* last);
 
 // methods
-bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type);
-
-bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method);
-
+void removeArgs(int argCount);
 void defineMethod(ObjString* name);
+
+// array methods
+bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type);
+bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method);
 
 #endif
