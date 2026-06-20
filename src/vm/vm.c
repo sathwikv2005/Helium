@@ -12,6 +12,7 @@ static void initSpecialStrings() {
     vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);
     vm.specialStrings[SPECIAL_LENGTH] = copyString("length", 6);
     vm.specialStrings[SPECIAL_SORT] = copyString("sort", 4);
+    vm.specialStrings[SPECIAL_SUBSTR] = copyString("substr", 6);
 }
 
 void initVM() {
@@ -285,22 +286,41 @@ static InterpretResult run() {
             case OP_INVOKE: {
                 ObjString* method = READ_STRING();
                 int argCount = READ_BYTE();
-                Value receiver = peek(argCount);
 
-                if (IS_ARRAY(receiver)) {
-                    if (!arrayMethodsFromName(AS_ARRAY(receiver), argCount,
-                                              method)) {
-                        RUNTIME_ERROR("Undefined array method '%s'.",
-                                      method->chars);
-                    }
-                    break;
+                Value receiver = peek(argCount);
+                if (!IS_OBJ(receiver)) {
+                    RUNTIME_ERROR("Only instances have methods.");
                 }
-                frame->ip = ip;
-                if (!invoke(method, argCount)) {
-                    return INTERPRET_RUNTIME_ERROR;
+
+                switch (OBJ_TYPE(receiver)) {
+                    case OBJ_ARRAY:
+                        if (!arrayMethodsFromName(AS_ARRAY(receiver), argCount,
+                                                  method)) {
+                            RUNTIME_ERROR("Undefined array method '%s'.",
+                                          method->chars);
+                        }
+                        break;
+
+                    case OBJ_STRING:
+                        if (!stringMethodsFromName(AS_STRING(receiver),
+                                                   argCount, method)) {
+                            RUNTIME_ERROR("Undefined string method '%s'.",
+                                          method->chars);
+                        }
+                        break;
+
+                    default:
+                        frame->ip = ip;
+
+                        if (!invoke(method, argCount)) {
+                            return INTERPRET_RUNTIME_ERROR;
+                        }
+
+                        frame = &vm.frames[vm.frameCount - 1];
+                        ip = frame->ip;
+                        break;
                 }
-                frame = &vm.frames[vm.frameCount - 1];
-                ip = frame->ip;
+
                 break;
             }
             case OP_GET_INDEX: {

@@ -50,6 +50,7 @@ typedef enum {
     SPECIAL_POP,
     SPECIAL_LENGTH,
     SPECIAL_SORT,
+    SPECIAL_SUBSTR,
 
     SPECIAL_COUNT
 } SpecialString;

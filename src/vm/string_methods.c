@@ -1,0 +1,75 @@
+#include "vm_common.h"
+
+static bool getIntegerArg(Value value, const char* name, int* out) {
+    if (!IS_NUMBER(value)) {
+        runtimeError("%s must be a number.", name);
+        return false;
+    }
+
+    double number = AS_NUMBER(value);
+
+    if ((int)number != number) {
+        runtimeError("%s must be an integer.", name);
+        return false;
+    }
+
+    *out = (int)number;
+    return true;
+}
+
+static bool substrMethod(ObjString* receiver, int argCount) {
+    if (argCount < 1 || argCount > 2) {
+        runtimeError("substr() expects 1 or 2 arguments.");
+        return false;
+    }
+
+    int start;
+    if (!getIntegerArg(vm.stackTop[-argCount], "substr() start index",
+                       &start)) {
+        return false;
+    }
+
+    int length = receiver->length - start;
+
+    if (argCount == 2) {
+        if (!getIntegerArg(vm.stackTop[-1], "substr() length", &length)) {
+            return false;
+        }
+    }
+
+    if (start < 0) {
+        runtimeError("substr() start index cannot be negative.");
+        return false;
+    }
+
+    if (length < 0) {
+        runtimeError("substr() length cannot be negative.");
+        return false;
+    }
+
+    if (start > receiver->length) {
+        runtimeError("substr() start index out of bounds.");
+        return false;
+    }
+
+    if (start + length > receiver->length) {
+        runtimeError("substr() range out of bounds.");
+        return false;
+    }
+
+    ObjString* result = copyString(receiver->chars + start, length);
+
+    removeArgs(argCount);
+    push(OBJ_VAL(result));
+
+    return true;
+}
+
+bool stringMethodsFromName(ObjString* receiver, int argCount,
+                           ObjString* method) {
+    if (method == vm.specialStrings[SPECIAL_SUBSTR]) {
+        return substrMethod(receiver, argCount);
+    }
+
+    return false;
+}

@@ -39,4 +39,8 @@ void defineMethod(ObjString* name);
 bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type);
 bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method);
 
+// string methods
+bool stringMethodsFromName(ObjString* receiver, int argCount,
+                           ObjString* method);
+
 #endif
