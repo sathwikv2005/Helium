@@ -92,5 +92,7 @@ void push(Value value);
 void swap(uint8_t offset);
 Value pop();
 
+bool isFalsey(Value value);
+
 void runtimeError(const char* format, ...);
 #endif
