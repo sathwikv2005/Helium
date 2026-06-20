@@ -9,6 +9,9 @@
 // nativeFn
 void defineNative(const char* name, NativeFn function);
 
+// runtime
+void registerRuntimeNatives();
+
 // core
 void registerCoreNatives();
 

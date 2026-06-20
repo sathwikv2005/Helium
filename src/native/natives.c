@@ -9,6 +9,7 @@ void defineNative(const char* name, NativeFn function) {
 }
 
 void mapNatives() {
+    registerRuntimeNatives();
     registerCoreNatives();
     registerSystemNatives();
     registerTypeNatives();

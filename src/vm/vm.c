@@ -660,6 +660,14 @@ static InterpretResult run() {
 }
 
 InterpretResult interpret(const char* source) {
+    switch (setjmp(vm.vmJump)) {
+        case JUMP_RUNTIME_ERROR:
+            return INTERPRET_RUNTIME_ERROR;
+
+        case JUMP_EXIT:
+            return INTERPRET_EXIT;
+    }
+
     ObjFunction* function = compile(source);
 
     if (function == NULL) {
@@ -671,10 +679,6 @@ InterpretResult interpret(const char* source) {
     pop();
     push(OBJ_VAL(closure));
     callValue(OBJ_VAL(closure), 0);
-
-    if (setjmp(vm.errorJmp) != 0) {
-        return INTERPRET_RUNTIME_ERROR;
-    }
 
     return run();
 }

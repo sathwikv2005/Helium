@@ -21,7 +21,7 @@ void runtimeError(const char* format, ...) {
     }
 
     resetStack();
-    longjmp(vm.errorJmp, 1);
+    longjmp(vm.vmJump, JUMP_RUNTIME_ERROR);
 }
 
 Value peek(int distance) { return vm.stackTop[-1 - distance]; }
