@@ -1,0 +1,6 @@
+print len("");
+print len("a");
+print len("hello");
+print len("hello world");
+print len({a: 10, b: 30, "c": 55});
+print len({});

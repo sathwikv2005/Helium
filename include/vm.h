@@ -71,16 +71,21 @@ typedef struct {
 
     bool currentGCMark;
 
-    jmp_buf errorJmp;
+    int exitCode;
+
+    jmp_buf vmJump;
 
     // debug flags
     uint8_t debugFlags;
 } VM;
 
+typedef enum { JUMP_RUNTIME_ERROR = 1, JUMP_EXIT = 2 } JumpReason;
+
 typedef enum {
     INTERPRET_OK,
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR,
+    INTERPRET_EXIT
 } InterpretResult;
 
 extern VM vm;
@@ -91,6 +96,8 @@ InterpretResult interpret(const char* source);
 void push(Value value);
 void swap(uint8_t offset);
 Value pop();
+
+bool isFalsey(Value value);
 
 void runtimeError(const char* format, ...);
 #endif

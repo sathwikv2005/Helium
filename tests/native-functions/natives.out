@@ -2,22 +2,3 @@
 true
 === clock ===
 true
-=== number ===
-123
-123.45
--99
-1000
-=== string ===
-123
-123.45
-true
-false
-null
-hello
-=== len ===
-0
-1
-5
-11
-3
-0
