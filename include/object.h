@@ -155,6 +155,8 @@ Value valueToString(Value value);
 
 void printArray(ObjArray* array);
 
+ObjString* objType(Value value);
+
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }

@@ -63,6 +63,7 @@ typedef enum {
     TOKEN_TRUE,
     TOKEN_VAR,
     TOKEN_WHILE,
+    TOKEN_TYPEOF,
 
     //
     TOKEN_ERROR,

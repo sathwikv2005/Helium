@@ -1,0 +1,15 @@
+function outer() {
+    var x = 123;
+
+    function inner() {
+        return x;
+    }
+
+    return inner;
+}
+
+print typeof outer;
+print typeof outer();
+
+var closure = outer();
+print typeof closure;

@@ -158,6 +158,48 @@ void printObject(Value value) {
     }
 }
 
+ObjString* objType(Value value) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_STRING:
+            return copyString("string", 6);
+
+        case OBJ_UPVALUE:
+            return copyString("upvalue", 7);
+
+        case OBJ_BOUND_METHOD:
+            return copyString("function", 8);
+
+        case OBJ_CLASS:
+            return copyString("class", 5);
+
+        case OBJ_INSTANCE:
+            return copyString("instance", 8);
+
+        case OBJ_CLOSURE:
+            return copyString("function", 8);
+
+        case OBJ_FUNCTION:
+            return copyString("function", 8);
+
+        case OBJ_NATIVE:
+            return copyString("native", 6);
+
+        case OBJ_HASHMAP:
+            return copyString("map", 3);
+
+        case OBJ_ARRAY:
+            return copyString("array", 5);
+
+        case OBJ_ARRAY_METHOD:
+            return copyString("array_method", 12);
+
+        case OBJ_VARIABLE:
+            return copyString("variable", 8);
+    }
+
+    return copyString("unknown type", 12);
+}
+
 static Value arrayToString(ObjArray* array) {
     if (array->array.count == 0) {
         return OBJ_VAL(copyString("[]", 2));
@@ -198,16 +240,47 @@ static Value arrayToString(ObjArray* array) {
     return OBJ_VAL(result);
 }
 
+static Value stringValue(const char* chars) {
+    return OBJ_VAL(copyString(chars, (int)strlen(chars)));
+}
+
+static Value functionToString(ObjFunction* function) {
+    if (function->name == NULL) {
+        return stringValue("<script>");
+    }
+
+    char buffer[256];
+    int length =
+        snprintf(buffer, sizeof(buffer), "<fn %s>", function->name->chars);
+
+    return OBJ_VAL(copyString(buffer, length));
+}
+
+static Value classToString(ObjClass* klass) {
+    char buffer[256];
+    int length =
+        snprintf(buffer, sizeof(buffer), "<CLASS %s>", klass->name->chars);
+
+    return OBJ_VAL(copyString(buffer, length));
+}
+
+static Value instanceToString(ObjInstance* instance) {
+    char buffer[256];
+    int length =
+        snprintf(buffer, sizeof(buffer), "<%s>", instance->klass->name->chars);
+
+    return OBJ_VAL(copyString(buffer, length));
+}
+
 Value valueToString(Value value) {
     char buffer[32];
 
     if (IS_BOOL(value)) {
-        return OBJ_VAL(copyString(AS_BOOL(value) ? "true" : "false",
-                                  AS_BOOL(value) ? 4 : 5));
+        return stringValue(AS_BOOL(value) ? "true" : "false");
     }
 
     if (IS_NULL(value)) {
-        return OBJ_VAL(copyString("null", 4));
+        return stringValue("null");
     }
 
     if (IS_NUMBER(value)) {
@@ -216,48 +289,42 @@ Value valueToString(Value value) {
         return OBJ_VAL(copyString(buffer, length));
     }
 
-    Obj* obj = AS_OBJ(value);
-
-    switch (obj->type) {
+    switch (OBJ_TYPE(value)) {
         case OBJ_STRING:
             return value;
 
-        case OBJ_FUNCTION:
-        case OBJ_CLOSURE:
-            return OBJ_VAL(copyString("<fn>", 4));
-
-        case OBJ_NATIVE:
-            return OBJ_VAL(copyString("<native fn>", 11));
-
         case OBJ_UPVALUE:
-            return OBJ_VAL(copyString("<upvalue>", 9));
-
-        case OBJ_VARIABLE:
-            return OBJ_VAL(copyString("<variable>", 10));
-
-        case OBJ_CLASS: {
-            ObjClass* klass = (ObjClass*)obj;
-            return OBJ_VAL(copyString(klass->name->chars, klass->name->length));
-        }
-
-        case OBJ_INSTANCE: {
-            ObjInstance* instance = (ObjInstance*)obj;
-
-            char buffer[256];
-            int length = snprintf(buffer, sizeof(buffer), "%s instance",
-                                  instance->klass->name->chars);
-
-            return OBJ_VAL(copyString(buffer, length));
-        }
+            return stringValue("upvalue");
 
         case OBJ_BOUND_METHOD:
-            return OBJ_VAL(copyString("<bound method>", 14));
+            return functionToString(AS_BOUND_METHOD(value)->method->function);
+
+        case OBJ_CLASS:
+            return classToString(AS_CLASS(value));
+
+        case OBJ_INSTANCE:
+            return instanceToString(AS_INSTANCE(value));
+
+        case OBJ_CLOSURE:
+            return functionToString(AS_CLOSURE(value)->function);
+
+        case OBJ_FUNCTION:
+            return functionToString(AS_FUNCTION(value));
+
+        case OBJ_NATIVE:
+            return stringValue("<native fn>");
+
         case OBJ_HASHMAP:
-            return OBJ_VAL(copyString("<map>", 5));
+            return stringValue("<map>");
+
         case OBJ_ARRAY:
             return arrayToString(AS_ARRAY(value));
+
         case OBJ_ARRAY_METHOD:
-            return OBJ_VAL(copyString("<array method>", 14));
+            return stringValue("<array method>");
+
+        case OBJ_VARIABLE:
+            return stringValue("Variable");
     }
 
     return NULL_VAL;
