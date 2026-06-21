@@ -118,6 +118,16 @@ static bool toLowerMethod(ObjString* receiver, int argCount) {
     return true;
 }
 
+static bool isEmptyMethod(ObjString* receiver, int argCount) {
+    if (argCount != 0) {
+        runtimeError("isEmpty() expects no arguments.");
+        return false;
+    }
+    removeArgs(argCount);
+    push(BOOL_VAL(receiver->length == 0));
+    return true;
+}
+
 // prevents the C compiler from inlining this function into the VM's dispatch
 // loop.
 //  With GCC -O3 -flto, inlining causes a significant performance impact in
@@ -133,6 +143,9 @@ bool stringMethodsFromName(ObjString* receiver, int argCount,
     }
     if (method == vm.specialStrings[SPECIAL_TOUPPER]) {
         return toUpperMethod(receiver, argCount);
+    }
+    if (method == vm.specialStrings[SPECIAL_ISEMPTY]) {
+        return isEmptyMethod(receiver, argCount);
     }
 
     return false;
