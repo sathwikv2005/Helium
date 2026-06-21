@@ -1,0 +1,24 @@
+print("hello".substr(0));
+print("hello".substr(1));
+print("hello".substr(4));
+print("hello".substr(5));
+
+print("hello".substr(0, 5));
+print("hello".substr(1, 3));
+print("hello".substr(4, 1));
+print("hello".substr(5, 0));
+
+print("".substr(0));
+print("".substr(0, 0));
+
+print("hello".toUpper());
+print("Hello123".toUpper());
+print("HELLO".toUpper());
+print("".toUpper());
+print("aBc!@#123".toUpper());
+
+print("HELLO".toLower());
+print("Hello123".toLower());
+print("hello".toLower());
+print("".toLower());
+print("AbC!@#123".toLower());

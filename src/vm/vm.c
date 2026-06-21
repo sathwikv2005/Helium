@@ -2,6 +2,21 @@
 
 VM vm;
 
+static void initSpecialStrings() {
+    for (int i = 0; i < SPECIAL_COUNT; i++) {
+        vm.specialStrings[i] = NULL;
+    }
+
+    vm.specialStrings[SPECIAL_INIT] = copyString("init", 4);
+    vm.specialStrings[SPECIAL_PUSH] = copyString("push", 4);
+    vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);
+    vm.specialStrings[SPECIAL_LENGTH] = copyString("length", 6);
+    vm.specialStrings[SPECIAL_SORT] = copyString("sort", 4);
+    vm.specialStrings[SPECIAL_SUBSTR] = copyString("substr", 6);
+    vm.specialStrings[SPECIAL_TOLOWER] = copyString("toLower", 7);
+    vm.specialStrings[SPECIAL_TOUPPER] = copyString("toUpper", 7);
+}
+
 void initVM() {
     resetStack();
     vm.objects = NULL;
@@ -15,22 +30,12 @@ void initVM() {
     initTable(&vm.globals);
     initTable(&vm.strings);
 
-    vm.initString = NULL;
-    vm.pushString = NULL;
-    vm.popString = NULL;
-    vm.lengthString = NULL;
-    vm.sortString = NULL;
-    vm.initString = copyString("init", 4);
-    vm.pushString = copyString("push", 4);
-    vm.popString = copyString("pop", 3);
-    vm.lengthString = copyString("length", 6);
-    vm.sortString = copyString("sort", 4);
+    initSpecialStrings();
 
     mapNatives();
 }
 
 void freeVM() {
-    vm.initString = NULL;
     freeObjects();
     freeTable(&vm.strings);
     freeTable(&vm.globals);
@@ -232,11 +237,11 @@ static InterpretResult run() {
                     }
                     case OBJ_ARRAY: {
                         ObjArray* array = (ObjArray*)target;
-                        if (name == vm.pushString) {
+                        if (name == vm.specialStrings[SPECIAL_PUSH]) {
                             pop();  // remove array
                             push(OBJ_VAL(
                                 newArrayMethod(array, ARRAY_METHOD_PUSH)));
-                        } else if (name == vm.popString) {
+                        } else if (name == vm.specialStrings[SPECIAL_POP]) {
                             pop();
                             push(OBJ_VAL(
                                 newArrayMethod(array, ARRAY_METHOD_POP)));
@@ -283,22 +288,41 @@ static InterpretResult run() {
             case OP_INVOKE: {
                 ObjString* method = READ_STRING();
                 int argCount = READ_BYTE();
-                Value receiver = peek(argCount);
 
-                if (IS_ARRAY(receiver)) {
-                    if (!arrayMethodsFromName(AS_ARRAY(receiver), argCount,
-                                              method)) {
-                        RUNTIME_ERROR("Undefined array method '%s'.",
-                                      method->chars);
-                    }
-                    break;
+                Value receiver = peek(argCount);
+                if (!IS_OBJ(receiver)) {
+                    RUNTIME_ERROR("Only instances have methods.");
                 }
-                frame->ip = ip;
-                if (!invoke(method, argCount)) {
-                    return INTERPRET_RUNTIME_ERROR;
+
+                switch (OBJ_TYPE(receiver)) {
+                    case OBJ_ARRAY:
+                        if (!arrayMethodsFromName(AS_ARRAY(receiver), argCount,
+                                                  method)) {
+                            RUNTIME_ERROR("Undefined array method '%s'.",
+                                          method->chars);
+                        }
+                        break;
+
+                    case OBJ_STRING:
+                        if (!stringMethodsFromName(AS_STRING(receiver),
+                                                   argCount, method)) {
+                            RUNTIME_ERROR("Undefined string method '%s'.",
+                                          method->chars);
+                        }
+                        break;
+
+                    default:
+                        frame->ip = ip;
+
+                        if (!invoke(method, argCount)) {
+                            return INTERPRET_RUNTIME_ERROR;
+                        }
+
+                        frame = &vm.frames[vm.frameCount - 1];
+                        ip = frame->ip;
+                        break;
                 }
-                frame = &vm.frames[vm.frameCount - 1];
-                ip = frame->ip;
+
                 break;
             }
             case OP_GET_INDEX: {

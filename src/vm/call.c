@@ -64,7 +64,7 @@ bool callValue(Value callee, int argCount) {
 
 bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
     Value method;
-    if (name == vm.initString) {
+    if (name == vm.specialStrings[SPECIAL_INIT]) {
         if (klass->initializer == NULL) {
             if (argCount != 0) {
                 runtimeError(

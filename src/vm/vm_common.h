@@ -15,6 +15,12 @@
 #include "../../include/object.h"
 #include "../../include/vm.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+#define HELIUM_NOINLINE __attribute__((noinline))
+#else
+#define HELIUM_NOINLINE
+#endif
+
 // util
 Value peek(int distance);
 bool isFalsey(Value value);
@@ -32,10 +38,15 @@ ObjUpvalue* captureUpvalue(Value* local);
 void closeUpvalues(Value* last);
 
 // methods
-bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type);
+void removeArgs(int argCount);
+void defineMethod(ObjString* name);
 
+// array methods
+bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type);
 bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method);
 
-void defineMethod(ObjString* name);
+// string methods
+bool stringMethodsFromName(ObjString* receiver, int argCount,
+                           ObjString* method);
 
 #endif

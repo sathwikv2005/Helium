@@ -44,6 +44,19 @@ typedef struct {
     Value* slots;
 } CallFrame;
 
+typedef enum {
+    SPECIAL_INIT,
+    SPECIAL_PUSH,
+    SPECIAL_POP,
+    SPECIAL_LENGTH,
+    SPECIAL_SORT,
+    SPECIAL_SUBSTR,
+    SPECIAL_TOUPPER,
+    SPECIAL_TOLOWER,
+
+    SPECIAL_COUNT
+} SpecialString;
+
 typedef struct {
     CallFrame frames[FRAMES_MAX];
     int frameCount;
@@ -52,11 +65,8 @@ typedef struct {
     Table strings;
     Table globals;
 
-    ObjString* initString;
-    ObjString* pushString;
-    ObjString* lengthString;
-    ObjString* sortString;
-    ObjString* popString;
+    // interned string at startup
+    ObjString* specialStrings[SPECIAL_COUNT];
 
     ObjUpvalue* openUpvalues;
 
