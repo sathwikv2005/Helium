@@ -1,0 +1,16 @@
+class B {}
+print typeof B;
+
+var b = B();
+print typeof b;
+
+class C {
+    method() {}
+}
+
+
+var c = C();
+print typeof c.method;
+
+var fn = c.method;
+print typeof fn;

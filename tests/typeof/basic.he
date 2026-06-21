@@ -1,0 +1,30 @@
+print typeof 1.5;
+print typeof -1;
+print typeof -1 + " test";
+print typeof (1 + 2);
+print typeof (1 < 2);
+print typeof !true;
+
+print typeof [];
+print typeof [1, 2, 3];
+print typeof [[]];
+print typeof [{}];
+
+print typeof {"a": 1};
+print typeof {"a": [1, 2, 3]};
+
+print typeof typeof 1;
+print typeof typeof "";
+print typeof typeof [];
+print typeof typeof {};
+
+print typeof (true ? 1 : 2);
+print typeof (true ? "" : "abc");
+
+var arr = [];
+print typeof arr;
+
+var map = {};
+print typeof map;
+
+print typeof len;
