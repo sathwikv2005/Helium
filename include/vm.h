@@ -53,6 +53,7 @@ typedef enum {
     SPECIAL_SUBSTR,
     SPECIAL_TOUPPER,
     SPECIAL_TOLOWER,
+    SPECIAL_ISEMPTY,
 
     SPECIAL_COUNT
 } SpecialString;

@@ -2,21 +2,6 @@
 
 VM vm;
 
-static void initSpecialStrings() {
-    for (int i = 0; i < SPECIAL_COUNT; i++) {
-        vm.specialStrings[i] = NULL;
-    }
-
-    vm.specialStrings[SPECIAL_INIT] = copyString("init", 4);
-    vm.specialStrings[SPECIAL_PUSH] = copyString("push", 4);
-    vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);
-    vm.specialStrings[SPECIAL_LENGTH] = copyString("length", 6);
-    vm.specialStrings[SPECIAL_SORT] = copyString("sort", 4);
-    vm.specialStrings[SPECIAL_SUBSTR] = copyString("substr", 6);
-    vm.specialStrings[SPECIAL_TOLOWER] = copyString("toLower", 7);
-    vm.specialStrings[SPECIAL_TOUPPER] = copyString("toUpper", 7);
-}
-
 void initVM() {
     resetStack();
     vm.objects = NULL;
@@ -232,22 +217,6 @@ static InterpretResult run() {
                         } else {
                             pop();
                             push(NULL_VAL);  // return null as default
-                        }
-                        break;
-                    }
-                    case OBJ_ARRAY: {
-                        ObjArray* array = (ObjArray*)target;
-                        if (name == vm.specialStrings[SPECIAL_PUSH]) {
-                            pop();  // remove array
-                            push(OBJ_VAL(
-                                newArrayMethod(array, ARRAY_METHOD_PUSH)));
-                        } else if (name == vm.specialStrings[SPECIAL_POP]) {
-                            pop();
-                            push(OBJ_VAL(
-                                newArrayMethod(array, ARRAY_METHOD_POP)));
-                        } else {
-                            RUNTIME_ERROR("Unknown array method %s",
-                                          name->chars);
                         }
                         break;
                     }
