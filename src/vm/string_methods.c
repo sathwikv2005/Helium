@@ -118,6 +118,11 @@ static bool toLowerMethod(ObjString* receiver, int argCount) {
     return true;
 }
 
+// prevents the C compiler from inlining this function into the VM's dispatch
+// loop.
+//  With GCC -O3 -flto, inlining causes a significant performance impact in
+//  interpreter's runtime errors even when this function never executes.
+HELIUM_NOINLINE
 bool stringMethodsFromName(ObjString* receiver, int argCount,
                            ObjString* method) {
     if (method == vm.specialStrings[SPECIAL_SUBSTR]) {
