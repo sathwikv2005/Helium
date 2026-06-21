@@ -88,3 +88,40 @@ bool valuesEqual(Value a, Value b) {
     }
 #endif
 }
+
+HELIUM_NOINLINE
+ObjString* valueType(Value value) {
+#ifdef NAN_BOXING
+    if (IS_BOOL(value)) {
+        return copyString("bool", 4);
+    }
+
+    if (IS_NULL(value)) {
+        return copyString("null", 4);
+    }
+
+    if (IS_NUMBER(value)) {
+        return copyString("number", 6);
+    }
+
+    if (IS_OBJ(value)) {
+        return objType(value);
+    }
+#else
+    switch (value.type) {
+        case VAL_BOOL:
+            return copyString("bool", 4);
+
+        case VAL_NULL:
+            return copyString("null", 4);
+
+        case VAL_NUMBER:
+            return copyString("number", 6);
+
+        case VAL_OBJ:
+            return objType(value);
+    }
+#endif
+
+    return copyString("unknown type", 12);
+}

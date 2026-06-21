@@ -641,6 +641,12 @@ static InterpretResult run() {
             case OP_SWAP:
                 swap(READ_BYTE());
                 break;
+            case OP_TYPE:
+                ObjString* type = valueType(peek(0));
+                Value result = OBJ_VAL(type);
+                pop();
+                push(result);
+                break;
             default:
                 break;
         }
