@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "vm_common.h"
 
 static bool getIntegerArg(Value value, const char* name, int* out) {
@@ -52,7 +54,7 @@ static bool substrMethod(ObjString* receiver, int argCount) {
         return false;
     }
 
-    if (start + length > receiver->length) {
+    if (length > receiver->length - start) {
         runtimeError("substr() range out of bounds.");
         return false;
     }
@@ -64,11 +66,68 @@ static bool substrMethod(ObjString* receiver, int argCount) {
 
     return true;
 }
+static bool toUpperMethod(ObjString* receiver, int argCount) {
+    if (argCount != 0) {
+        runtimeError("toUpper() expects no arguments.");
+        return false;
+    }
+
+    int length = receiver->length;
+    char* chars = ALLOCATE(char, length + 1);
+
+    for (int i = 0; i < length; i++) {
+        char c = receiver->chars[i];
+
+        if (c >= 'a' && c <= 'z') {
+            c -= 'a' - 'A';
+        }
+
+        chars[i] = c;
+    }
+
+    chars[length] = '\0';
+
+    ObjString* result = takeString(chars, length);
+    push(OBJ_VAL(result));
+    return true;
+}
+
+static bool toLowerMethod(ObjString* receiver, int argCount) {
+    if (argCount != 0) {
+        runtimeError("toLower() expects no arguments.");
+        return false;
+    }
+
+    int length = receiver->length;
+    char* chars = ALLOCATE(char, length + 1);
+
+    for (int i = 0; i < length; i++) {
+        char c = receiver->chars[i];
+
+        if (c >= 'A' && c <= 'Z') {
+            c += 'a' - 'A';
+        }
+
+        chars[i] = c;
+    }
+
+    chars[length] = '\0';
+
+    ObjString* result = takeString(chars, length);
+    push(OBJ_VAL(result));
+    return true;
+}
 
 bool stringMethodsFromName(ObjString* receiver, int argCount,
                            ObjString* method) {
     if (method == vm.specialStrings[SPECIAL_SUBSTR]) {
         return substrMethod(receiver, argCount);
+    }
+    if (method == vm.specialStrings[SPECIAL_TOLOWER]) {
+        return toLowerMethod(receiver, argCount);
+    }
+    if (method == vm.specialStrings[SPECIAL_TOUPPER]) {
+        return toUpperMethod(receiver, argCount);
     }
 
     return false;

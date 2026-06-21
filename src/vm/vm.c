@@ -13,6 +13,8 @@ static void initSpecialStrings() {
     vm.specialStrings[SPECIAL_LENGTH] = copyString("length", 6);
     vm.specialStrings[SPECIAL_SORT] = copyString("sort", 4);
     vm.specialStrings[SPECIAL_SUBSTR] = copyString("substr", 6);
+    vm.specialStrings[SPECIAL_TOLOWER] = copyString("toLower", 7);
+    vm.specialStrings[SPECIAL_TOUPPER] = copyString("toUpper", 7);
 }
 
 void initVM() {
