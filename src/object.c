@@ -83,6 +83,24 @@ static void printFunction(ObjFunction* function) {
     printf("<fn %s>", function->name->chars);
 }
 
+void printString(char* str, bool withQuotes) {
+    if (withQuotes) {
+        printf("\"%s\"", str);
+    } else {
+        printf("%s", str);
+    }
+    return;
+}
+
+void printArrayValue(Value value) {
+    if (IS_STRING(value)) {
+        printString(AS_CSTRING(value), true);
+        return;
+    }
+
+    printValue(value);
+}
+
 void printArray(ObjArray* array) {
     printf("[ ");
     if (array->array.count == 0) {
@@ -92,17 +110,17 @@ void printArray(ObjArray* array) {
     Value* values = array->array.values;
     int i;
     for (i = 0; i < array->array.count - 1; i++) {
-        printValue(values[i]);
+        printArrayValue(values[i]);
         printf(", ");
     }
-    printValue(values[i]);
+    printArrayValue(values[i]);
     printf(" ]");
 }
 
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_STRING:
-            printf("%s", AS_CSTRING(value));
+            printString(AS_CSTRING(value), false);
             break;
         case OBJ_UPVALUE:
             printf("upvalue");
