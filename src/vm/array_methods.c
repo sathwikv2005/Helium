@@ -102,6 +102,16 @@ bool arrayMethods(ObjArray* receiver, int argCount, ArrayMethodType type) {
     return false;
 }
 
+static bool isEmptyMethod(ObjArray* receiver, int argCount) {
+    if (argCount != 0) {
+        runtimeError("isEmpty() expects no arguments.");
+        return false;
+    }
+    removeArgs(argCount);
+    push(BOOL_VAL(receiver->array.count == 0));
+    return true;
+}
+
 bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method) {
     if (method == vm.specialStrings[SPECIAL_PUSH]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_PUSH);
@@ -114,6 +124,9 @@ bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method) {
     }
     if (method == vm.specialStrings[SPECIAL_SORT]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_SORT);
+    }
+    if (method == vm.specialStrings[SPECIAL_ISEMPTY]) {
+        return isEmptyMethod(receiver, argCount);
     }
     runtimeError("Undefined array method '%s'.", method->chars);
     return false;

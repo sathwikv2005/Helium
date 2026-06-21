@@ -12,3 +12,20 @@ void defineMethod(ObjString* name) {
     }
     pop();
 }
+
+void initSpecialStrings() {
+    for (int i = 0; i < SPECIAL_COUNT; i++) {
+        vm.specialStrings[i] = NULL;
+    }
+
+    vm.specialStrings[SPECIAL_INIT] = copyString("init", 4);
+    vm.specialStrings[SPECIAL_PUSH] = copyString("push", 4);
+    vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);
+    vm.specialStrings[SPECIAL_LENGTH] = copyString("length", 6);
+    vm.specialStrings[SPECIAL_SORT] = copyString("sort", 4);
+    vm.specialStrings[SPECIAL_SUBSTR] = copyString("substr", 6);
+    vm.specialStrings[SPECIAL_TOLOWER] = copyString("toLower", 7);
+    vm.specialStrings[SPECIAL_TOUPPER] = copyString("toUpper", 7);
+    vm.specialStrings[SPECIAL_ISEMPTY] = copyString("isEmpty", 7);
+    vm.specialStrings[SPECIAL_SPLIT] = copyString("split", 5);
+}

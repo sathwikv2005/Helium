@@ -38,6 +38,7 @@ ObjUpvalue* captureUpvalue(Value* local);
 void closeUpvalues(Value* last);
 
 // methods
+void initSpecialStrings();
 void removeArgs(int argCount);
 void defineMethod(ObjString* name);
 

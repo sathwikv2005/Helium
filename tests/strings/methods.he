@@ -22,3 +22,10 @@ print("Hello123".toLower());
 print("hello".toLower());
 print("".toLower());
 print("AbC!@#123".toLower());
+
+print "".isEmpty();
+print "35wtyGrsey35e6".isEmpty();
+
+print "sAR#sfgSF#".split("#");
+print "#".split("#");
+print "".split("#");
