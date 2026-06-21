@@ -3,7 +3,7 @@ false
 null
 123.456
 hello
-<fn>
+<fn foo>
 <native fn>
 123
 45.67
