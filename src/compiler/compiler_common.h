@@ -170,6 +170,7 @@ void dot(bool canAssign);
 void instanceIndex(bool canAssign);
 void array(bool canAssign);
 void hashMap(bool canAssign);
+void typeof_(bool canAssign);
 
 // statement
 void statement();

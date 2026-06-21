@@ -269,4 +269,9 @@ void instanceIndex(bool canAssign) {
     }
 }
 
+void typeof_(bool canAssign) {
+    parsePrecedence(PREC_UNARY);
+    emitByte(OP_TYPE);
+}
+
 void expression() { parsePrecedence(PREC_ASSIGNMENT); }

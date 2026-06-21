@@ -181,6 +181,8 @@ static TokenType identifierType() {
                         return checkKeyword(2, 2, "is", TOKEN_THIS);
                     case 'r':
                         return checkKeyword(2, 2, "ue", TOKEN_TRUE);
+                    case 'y':
+                        return checkKeyword(2, 4, "peof", TOKEN_TYPEOF);
                 }
             }
             break;

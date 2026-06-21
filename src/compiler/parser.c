@@ -53,6 +53,7 @@ ParseRule rules[] = {
     [TOKEN_CONST] = {NULL, NULL, PREC_NONE},
     [TOKEN_VAR] = {NULL, NULL, PREC_NONE},
     [TOKEN_WHILE] = {NULL, NULL, PREC_NONE},
+    [TOKEN_TYPEOF] = {typeof_, NULL, PREC_PRIMARY},
     [TOKEN_ERROR] = {NULL, NULL, PREC_NONE},
     [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
 };
