@@ -128,6 +128,70 @@ static bool isEmptyMethod(ObjString* receiver, int argCount) {
     return true;
 }
 
+static bool splitMethod(ObjString* receiver, int argCount) {
+    if (argCount != 1) {
+        runtimeError("split() expects 1 argument.");
+        return false;
+    }
+
+    Value arg = vm.stackTop[-1];
+
+    if (!IS_STRING(arg)) {
+        runtimeError("split() expects a string.");
+        return false;
+    }
+
+    ObjString* separator = AS_STRING(arg);
+
+    if (separator->length == 0) {
+        runtimeError("split() separator cannot be empty.");
+        return false;
+    }
+
+    ObjArray* result = newArray(8);
+
+    if (separator->length == 1) {
+        char sep = separator->chars[0];
+        char* start = receiver->chars;
+        char* end = receiver->chars + receiver->length;
+        char* match;
+
+        while ((match = strchr(start, sep)) != NULL && match < end) {
+            writeValueArray(&result->array,
+                            OBJ_VAL(copyString(start, (int)(match - start))));
+
+            start = match + 1;
+        }
+
+        writeValueArray(&result->array,
+                        OBJ_VAL(copyString(start, (int)(end - start))));
+    } else {
+        char* start = receiver->chars;
+        char* end = receiver->chars + receiver->length;
+        char* current = start;
+
+        while (current <= end - separator->length) {
+            if (memcmp(current, separator->chars, separator->length) == 0) {
+                writeValueArray(
+                    &result->array,
+                    OBJ_VAL(copyString(start, (int)(current - start))));
+
+                current += separator->length;
+                start = current;
+            } else {
+                current++;
+            }
+        }
+
+        writeValueArray(&result->array,
+                        OBJ_VAL(copyString(start, (int)(end - start))));
+    }
+
+    removeArgs(argCount);
+    push(OBJ_VAL(result));
+    return true;
+}
+
 // prevents the C compiler from inlining this function into the VM's dispatch
 // loop.
 //  With GCC -O3 -flto, inlining causes a significant performance impact in
@@ -146,6 +210,9 @@ bool stringMethodsFromName(ObjString* receiver, int argCount,
     }
     if (method == vm.specialStrings[SPECIAL_ISEMPTY]) {
         return isEmptyMethod(receiver, argCount);
+    }
+    if (method == vm.specialStrings[SPECIAL_SPLIT]) {
+        return splitMethod(receiver, argCount);
     }
 
     return false;

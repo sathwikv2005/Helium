@@ -27,4 +27,5 @@ void initSpecialStrings() {
     vm.specialStrings[SPECIAL_TOLOWER] = copyString("toLower", 7);
     vm.specialStrings[SPECIAL_TOUPPER] = copyString("toUpper", 7);
     vm.specialStrings[SPECIAL_ISEMPTY] = copyString("isEmpty", 7);
+    vm.specialStrings[SPECIAL_SPLIT] = copyString("split", 5);
 }
