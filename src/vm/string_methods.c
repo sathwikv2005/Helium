@@ -149,6 +149,7 @@ static bool splitMethod(ObjString* receiver, int argCount) {
     }
 
     ObjArray* result = newArray(8);
+    push(OBJ_VAL(result));
 
     if (separator->length == 1) {
         char sep = separator->chars[0];
@@ -188,6 +189,7 @@ static bool splitMethod(ObjString* receiver, int argCount) {
     }
 
     removeArgs(argCount);
+    pop();
     push(OBJ_VAL(result));
     return true;
 }
