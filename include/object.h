@@ -18,7 +18,9 @@
 #define IS_HASHMAP(value) isObjType(value, OBJ_HASHMAP)
 #define IS_ARRAY(value) isObjType(value, OBJ_ARRAY)
 #define IS_ARRAY_METHOD(value) isObjType(value, OBJ_ARRAY_METHOD)
+#define IS_MODULE(value) isObjType(value, OBJ_MODULE)
 
+#define AS_MODULE(value) ((ObjModule*)AS_OBJ(value))
 #define AS_ARRAY_METHOD(value) ((ObjArrayMethod*)AS_OBJ(value))
 #define AS_ARRAY(value) ((ObjArray*)AS_OBJ(value))
 #define AS_HASHMAP(value) ((ObjHashMap*)AS_OBJ(value))

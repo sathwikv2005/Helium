@@ -36,6 +36,8 @@ void statement() {
         beginScope();
         block();
         endScope();
+    } else if (match(TOKEN_IMPORT)) {
+        importStatement();
     } else
         expressionStatement();
 }

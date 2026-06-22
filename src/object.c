@@ -155,6 +155,9 @@ void printObject(Value value) {
         case OBJ_VARIABLE:
             printf("Variable");
             break;
+        case OBJ_MODULE:
+            printf("<module %s>", AS_MODULE(value)->path->chars);
+            break;
     }
 }
 
@@ -195,6 +198,8 @@ ObjString* objType(Value value) {
 
         case OBJ_VARIABLE:
             return copyString("variable", 8);
+        case OBJ_MODULE:
+            return copyString("module", 6);
     }
 
     return copyString("unknown type", 12);

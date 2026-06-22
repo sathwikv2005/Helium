@@ -609,6 +609,14 @@ static InterpretResult run() {
 
                 break;
             }
+            case OP_IMPORT: {
+                Value value = pop();
+                ObjString* name = AS_STRING(value);
+
+                ObjModule* module = newModule(name);
+                push(OBJ_VAL(module));
+                break;
+            }
             case OP_CLOSE_UPVALUE:
                 closeUpvalues(vm.stackTop - 1);
                 pop();

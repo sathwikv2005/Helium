@@ -49,6 +49,8 @@ typedef enum {
     OP_SUPER_INVOKE,
     OP_TYPE,
 
+    OP_IMPORT,
+
     OP_PUSH,
 
     OP_CREATE_MAP,

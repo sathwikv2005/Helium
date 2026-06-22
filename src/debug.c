@@ -170,6 +170,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
             return invokeInstruction("OP_SUPER_INVOKE", chunk, offset);
         case OP_SWAP:
             return byteInstruction("OP_SWAP", chunk, offset);
+        case OP_IMPORT:
+            return byteInstruction("OP_IMPORT", chunk, offset);
         default:
             printf("Unknown opcode %d\n", instruction);
             return offset + 1;

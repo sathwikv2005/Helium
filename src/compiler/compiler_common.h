@@ -183,6 +183,7 @@ void breakStatement();
 void continueStatement();
 void printStatement();
 void returnStatement();
+void importStatement();
 
 // declaration
 void declaration();
