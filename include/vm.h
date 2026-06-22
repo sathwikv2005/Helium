@@ -42,9 +42,12 @@ typedef struct {
     ObjClosure* closure;
     uint8_t* ip;
     Value* slots;
+
+    ObjModule* module;
 } CallFrame;
 
 typedef enum {
+    SPECIAL_SCRIPT,
     SPECIAL_INIT,
     SPECIAL_PUSH,
     SPECIAL_POP,
@@ -65,7 +68,8 @@ typedef struct {
 
     Value stack[STACK_MAX];
     Table strings;
-    Table globals;
+
+    Table builtins;
 
     // interned string at startup
     ObjString* specialStrings[SPECIAL_COUNT];

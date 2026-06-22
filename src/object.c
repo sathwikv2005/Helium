@@ -366,7 +366,7 @@ ObjClosure* newClosure(ObjFunction* function) {
         upvalues[i] = NULL;
     }
     ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
-
+    closure->module = NULL;
     closure->function = function;
     closure->upvalues = upvalues;
     closure->upvalueCount = function->upvalueCount;
@@ -414,4 +414,11 @@ ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type) {
     arrayMethod->type = type;
     arrayMethod->receiver = array;
     return arrayMethod;
+}
+
+ObjModule* newModule(ObjString* path) {
+    ObjModule* module = ALLOCATE_OBJ(ObjModule, OBJ_MODULE);
+    module->path = path;
+    initTable(&module->globals);
+    return module;
 }

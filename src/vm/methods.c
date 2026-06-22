@@ -18,6 +18,7 @@ void initSpecialStrings() {
         vm.specialStrings[i] = NULL;
     }
 
+    vm.specialStrings[SPECIAL_SCRIPT] = copyString("script", 6);
     vm.specialStrings[SPECIAL_INIT] = copyString("init", 4);
     vm.specialStrings[SPECIAL_PUSH] = copyString("push", 4);
     vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);

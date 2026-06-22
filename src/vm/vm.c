@@ -12,8 +12,8 @@ void initVM() {
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
     vm.currentGCMark = true;
-    initTable(&vm.globals);
     initTable(&vm.strings);
+    initTable(&vm.builtins);
 
     initSpecialStrings();
 
@@ -22,8 +22,8 @@ void initVM() {
 
 void freeVM() {
     freeObjects();
+    freeTable(&vm.builtins);
     freeTable(&vm.strings);
-    freeTable(&vm.globals);
 }
 
 static InterpretResult run() {
@@ -100,7 +100,7 @@ static InterpretResult run() {
                 ObjString* name = READ_STRING();
                 Value value;
 
-                if (!tableGet(&vm.globals, name, &value)) {
+                if (!tableGet(&frame->module->globals, name, &value)) {
                     RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
                 }
 
@@ -121,15 +121,20 @@ static InterpretResult run() {
             case OP_GET_GLOBAL: {
                 ObjString* name = READ_STRING();
                 Value value;
-                if (!tableGet(&vm.globals, name, &value)) {
-                    RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+
+                if (!tableGet(&frame->module->globals, name, &value)) {
+                    if (!tableGet(&vm.builtins, name, &value)) {
+                        RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+                    }
                 }
+
                 if (IS_VARIABLE(value)) {
                     ObjVariable* var = AS_VARIABLE(value);
                     push(var->value);
-                    break;
-                } else
+                } else {
                     push(value);
+                }
+
                 break;
             }
             case OP_DEFINE_GLOBAL: {
@@ -141,7 +146,7 @@ static InterpretResult run() {
                 ObjVariable* variable = newVariable(value, false);
                 push(OBJ_VAL(variable));
 
-                tableSet(&vm.globals, name, OBJ_VAL(variable));
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
 
                 pop();  // variable
                 pop();  // name
@@ -159,7 +164,7 @@ static InterpretResult run() {
                 ObjVariable* variable = newVariable(value, true);
                 push(OBJ_VAL(variable));
 
-                tableSet(&vm.globals, name, OBJ_VAL(variable));
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
 
                 pop();  // variable
                 pop();  // name
@@ -590,7 +595,7 @@ static InterpretResult run() {
                 ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
                 ObjClosure* closure = newClosure(function);
                 push(OBJ_VAL(closure));
-
+                closure->module = frame->module;
                 for (int i = 0; i < closure->upvalueCount; i++) {
                     uint8_t isLocal = READ_BYTE();
                     uint8_t index = READ_BYTE();
@@ -672,9 +677,12 @@ InterpretResult interpret(const char* source) {
     if (function == NULL) {
         return INTERPRET_COMPILE_ERROR;
     }
-
     push(OBJ_VAL(function));
+    ObjModule* mainModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
+    push(OBJ_VAL(mainModule));
     ObjClosure* closure = newClosure(function);
+    closure->module = mainModule;
+    pop();
     pop();
     push(OBJ_VAL(closure));
     callValue(OBJ_VAL(closure), 0);

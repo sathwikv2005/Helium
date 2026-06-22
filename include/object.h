@@ -45,6 +45,7 @@ typedef enum {
     OBJ_HASHMAP,
     OBJ_ARRAY,
     OBJ_ARRAY_METHOD,
+    OBJ_MODULE
 } ObjType;
 
 struct Obj {
@@ -80,11 +81,19 @@ typedef struct {
     Chunk chunk;
     ObjString* name;
 } ObjFunction;
+
+typedef struct {
+    Obj obj;
+    Table globals;
+    ObjString* path;
+} ObjModule;
 typedef struct {
     Obj obj;
     ObjFunction* function;
     ObjUpvalue** upvalues;
     int upvalueCount;
+
+    ObjModule* module;
 } ObjClosure;
 
 typedef struct {
@@ -146,6 +155,7 @@ ObjNative* newNative(NativeFn function);
 ObjHashMap* newHashMap();
 ObjArray* newArray(int capacity);
 ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type);
+ObjModule* newModule(ObjString* path);
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
