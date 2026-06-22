@@ -3,6 +3,10 @@
 #include "native_common.h"
 
 static Value inputNative(int argCount, Value* args) {
+    if (argCount > 1) {
+        runtimeError("input() expects 0 or 1 arguments.");
+        return NULL_VAL;
+    }
     if (argCount > 0) {
         printValue(args[0]);
     }
