@@ -18,30 +18,51 @@ The project is heavily inspired by the book _Crafting Interpreters_ and serves a
 ## Examples
 
 ```js
-// fib.he
-function fib(n) {
-    if (n <= 1) return n;
-    return fib(n - 1) + fib(n - 2);
+//word frequency
+var text = "red blue red green blue red";
+var words = text.split(" ");
+
+var counts = {};
+
+var i = 0;
+while (i < words.length()) {
+    var word = words[i];
+
+    if (counts[word] == null) {
+        counts[word] = 1;
+    } else {
+        counts[word]++;
+    }
+
+    i++;
 }
 
-print fib(10); //55
+print counts["red"];   // 3
+print counts["blue"];  // 2
 ```
 
 ```js
-// pi.he
-var n = 10000000;
-var step = 1.0 / n;
-var sum = 0.0;
+// Object-oriented programming
+class Counter {
+    init(start) {
+        this.value = start;
+    }
 
-var i = 0;
-while (i < n) {
-    var x = (i + 0.5) * step;
-    sum = sum + 4.0 / (1.0 + x * x);
-    i = i + 1;
+    increment() {
+        this.value++;
+    }
+
+    get() {
+        return this.value;
+    }
 }
 
-var pi = sum * step;
-print pi; //3.14159265358973
+var counter = Counter(10);
+
+counter.increment();
+counter.increment();
+
+print counter.get(); // 12
 ```
 
 ---
