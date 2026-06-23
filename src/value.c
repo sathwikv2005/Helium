@@ -42,7 +42,7 @@ void printValue(Value value) {
     } else if (IS_NULL(value)) {
         printf("null");
     } else if (IS_NUMBER(value)) {
-        printf("%g", AS_NUMBER(value));
+        printf("%.15g", AS_NUMBER(value));
     } else if (IS_OBJ(value)) {
         printObject(value);
     }

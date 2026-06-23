@@ -329,7 +329,12 @@ Value valueToString(Value value) {
             return stringValue("<array method>");
 
         case OBJ_VARIABLE:
-            return stringValue("Variable");
+            return stringValue("<variable>");
+        case OBJ_MODULE:
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "<module: %s>",
+                     AS_MODULE(value)->path->chars);
+            return stringValue(buffer);
     }
 
     return NULL_VAL;
