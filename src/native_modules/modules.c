@@ -1,5 +1,10 @@
 #include "modules_common.h"
 
+// prevents the C compiler from inlining this function into the VM's dispatch
+// loop.
+//  With GCC -O3 -flto, inlining causes a significant performance impact in
+//  interpreter's runtime errors even when this function never executes.
+HELIUM_NOINLINE
 bool invokeModuleMethod(ObjModule* module, int argCount, ObjString* name) {
     Value value;
 
@@ -28,6 +33,11 @@ bool invokeModuleMethod(ObjModule* module, int argCount, ObjString* name) {
     return callValue(value, argCount);
 }
 
+// prevents the C compiler from inlining this function into the VM's dispatch
+// loop.
+//  With GCC -O3 -flto, inlining causes a significant performance impact in
+//  interpreter's runtime errors even when this function never executes.
+HELIUM_NOINLINE
 ObjModule* loadModule(ObjString* path) {
     Value value;
 

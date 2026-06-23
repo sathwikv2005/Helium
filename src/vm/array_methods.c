@@ -112,6 +112,11 @@ static bool isEmptyMethod(ObjArray* receiver, int argCount) {
     return true;
 }
 
+// prevents the C compiler from inlining this function into the VM's dispatch
+// loop.
+//  With GCC -O3 -flto, inlining causes a significant performance impact in
+//  interpreter's runtime errors even when this function never executes.
+HELIUM_NOINLINE
 bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method) {
     if (method == vm.specialStrings[SPECIAL_PUSH]) {
         return arrayMethods(receiver, argCount, ARRAY_METHOD_PUSH);
