@@ -1,8 +1,11 @@
+#include "time.h"
 #include "vm_common.h"
 
 VM vm;
 
 void initVM() {
+    srand((unsigned)time(NULL));
+
     resetStack();
     vm.objects = NULL;
     vm.grayCount = 0;
@@ -17,6 +20,7 @@ void initVM() {
 
     initSpecialStrings();
 
+    mapModules();
     mapNatives();
 }
 
@@ -383,7 +387,8 @@ static InterpretResult run() {
                         frame->ip = ip;
                         if (!invokeModuleMethod(AS_MODULE(receiver), argCount,
                                                 method)) {
-                            RUNTIME_ERROR("Module has no export '%s'.",
+                            RUNTIME_ERROR("%s has no export '%s'.",
+                                          AS_MODULE(receiver)->path->chars,
                                           method->chars);
                         }
                         frame = &vm.frames[vm.frameCount - 1];

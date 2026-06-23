@@ -49,6 +49,8 @@ typedef struct {
 typedef enum {
     SPECIAL_SCRIPT,
     SPECIAL_INIT,
+
+    // native functions
     SPECIAL_PUSH,
     SPECIAL_POP,
     SPECIAL_LENGTH,
@@ -58,6 +60,9 @@ typedef enum {
     SPECIAL_TOLOWER,
     SPECIAL_ISEMPTY,
     SPECIAL_SPLIT,
+
+    // native modules
+    SPECIAL_STD_MATH,
 
     SPECIAL_COUNT
 } SpecialString;
@@ -116,6 +121,7 @@ Value pop();
 bool isFalsey(Value value);
 
 void runtimeError(const char* format, ...);
+bool callValue(Value callee, int argCount);
 
 char* readFile(const char* path);
 #endif

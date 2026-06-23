@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define HELIUM_PI 3.14159265358979323846
+
 #define NAN_BOXING
 #define UINT8_COUNT (UINT8_MAX + 1)
 

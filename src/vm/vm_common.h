@@ -12,6 +12,7 @@
 #include "../../include/debug.h"
 #include "../../include/memory.h"
 #include "../../include/nativeFn.h"
+#include "../../include/nativeModules.h"
 #include "../../include/object.h"
 #include "../../include/vm.h"
 
@@ -43,9 +44,5 @@ bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method);
 // string methods
 bool stringMethodsFromName(ObjString* receiver, int argCount,
                            ObjString* method);
-
-// modules
-ObjModule* loadModule(ObjString* path);
-bool invokeModuleMethod(ObjModule* module, int argCount, ObjString* name);
 
 #endif
