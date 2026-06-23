@@ -46,5 +46,6 @@ bool stringMethodsFromName(ObjString* receiver, int argCount,
 
 // modules
 ObjModule* loadModule(ObjString* path);
+bool invokeModuleMethod(ObjModule* module, int argCount, ObjString* name);
 
 #endif

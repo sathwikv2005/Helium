@@ -379,7 +379,16 @@ static InterpretResult run() {
                                           method->chars);
                         }
                         break;
-
+                    case OBJ_MODULE:
+                        frame->ip = ip;
+                        if (!invokeModuleMethod(AS_MODULE(receiver), argCount,
+                                                method)) {
+                            RUNTIME_ERROR("Module has no export '%s'.",
+                                          method->chars);
+                        }
+                        frame = &vm.frames[vm.frameCount - 1];
+                        ip = frame->ip;
+                        break;
                     default:
                         frame->ip = ip;
 
@@ -798,26 +807,4 @@ InterpretResult interpret(const char* source) {
     callValue(OBJ_VAL(closure), 0);
 
     return run();
-}
-
-ObjModule* loadModule(ObjString* path) {
-    char* source = readFile(path->chars);
-
-    ObjModule* module = newModule(path);
-
-    ObjFunction* function = compileModule(source, module);
-    if (function == NULL) {
-        free(source);
-        return NULL;
-    }
-
-    ObjClosure* closure = newClosure(function);
-    closure->module = module;
-
-    push(OBJ_VAL(closure));
-    callValue(OBJ_VAL(closure), 0);
-
-    free(source);
-
-    return module;
 }

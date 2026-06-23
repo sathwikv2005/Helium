@@ -46,6 +46,7 @@ void statement() {
 }
 
 void declaration() {
+    bool prev = isExported;
     if (match(TOKEN_EXPORT)) {
         isExported = true;
 
@@ -65,7 +66,7 @@ void declaration() {
     } else {
         statement();
     }
-    isExported = false;
+    isExported = prev;
     // recover from panic mode.
     if (parser.panicMode) synchronize();
 }
