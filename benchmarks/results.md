@@ -15,7 +15,7 @@
 - OS: Windows 11
 - CPU: AMD Ryzen 7 4800H with Radeon Graphics
 - RAM: 15.42GB
-- Time: 2026-06-23 01:03:19
+- Time: 2026-06-24 01:16:59
 
 ---
 
@@ -23,11 +23,11 @@
 
 | Language | vs Helium |
 |----------|-----------|
-| JavaScript (Node v26.3.0) | 2.17x faster |
+| JavaScript (Node v26.3.0) | 2.09x faster |
 | Helium | 1.00x (baseline) |
-| Ruby (3.4.9) | 1.51x slower |
-| Python (3.11.2) | 1.71x slower |
-| Perl (5.42.2) | 2.27x slower |
+| Ruby (3.4.9) | 1.60x slower |
+| Python (3.11.2) | 1.81x slower |
+| Perl (5.42.2) | 2.42x slower |
 
 ---
 
@@ -35,175 +35,175 @@
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./array-sum/sum.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.094303 | 0.003084 | 1.35x faster |
-| <a href="./array-sum/sum.he" target="_blank">Helium</a> | 0.127691 | 0.001688 | 1.00x (baseline) |
-| <a href="./array-sum/sum.pl" target="_blank">Perl (5.42.2)</a> | 0.235573 | 0.005429 | 1.84x slower |
-| <a href="./array-sum/sum.py" target="_blank">Python (3.11.2)</a> | 0.238980 | 0.007218 | 1.87x slower |
-| <a href="./array-sum/sum.rb" target="_blank">Ruby (3.4.9)</a> | 0.379693 | 0.131756 | 2.97x slower |
+| <a href="./array-sum/sum.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.102668 | 0.019067 | 1.23x faster |
+| <a href="./array-sum/sum.he" target="_blank">Helium</a> | 0.126168 | 0.004822 | 1.00x (baseline) |
+| <a href="./array-sum/sum.py" target="_blank">Python (3.11.2)</a> | 0.230242 | 0.002938 | 1.82x slower |
+| <a href="./array-sum/sum.pl" target="_blank">Perl (5.42.2)</a> | 0.233406 | 0.016550 | 1.85x slower |
+| <a href="./array-sum/sum.rb" target="_blank">Ruby (3.4.9)</a> | 0.353018 | 0.020128 | 2.80x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 1.35x faster than Helium
-- Perl (5.42.2) is 1.84x slower than Helium
-- Python (3.11.2) is 1.87x slower than Helium
-- Ruby (3.4.9) is 2.97x slower than Helium
+- JavaScript (Node v26.3.0) is 1.23x faster than Helium
+- Python (3.11.2) is 1.82x slower than Helium
+- Perl (5.42.2) is 1.85x slower than Helium
+- Ruby (3.4.9) is 2.80x slower than Helium
 
 ## b-tree
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./b-tree/tree.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.117470 | 0.012940 | 2.50x faster |
-| <a href="./b-tree/tree.rb" target="_blank">Ruby (3.4.9)</a> | 0.287968 | 0.012740 | 1.02x faster |
-| <a href="./b-tree/tree.he" target="_blank">Helium</a> | 0.294066 | 0.006923 | 1.00x (baseline) |
-| <a href="./b-tree/tree.py" target="_blank">Python (3.11.2)</a> | 0.335528 | 0.016613 | 1.14x slower |
-| <a href="./b-tree/tree.pl" target="_blank">Perl (5.42.2)</a> | 1.061351 | 0.036032 | 3.61x slower |
+| <a href="./b-tree/tree.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.099502 | 0.004194 | 2.51x faster |
+| <a href="./b-tree/tree.he" target="_blank">Helium</a> | 0.249750 | 0.014090 | 1.00x (baseline) |
+| <a href="./b-tree/tree.rb" target="_blank">Ruby (3.4.9)</a> | 0.266289 | 0.011776 | 1.07x slower |
+| <a href="./b-tree/tree.py" target="_blank">Python (3.11.2)</a> | 0.292103 | 0.004415 | 1.17x slower |
+| <a href="./b-tree/tree.pl" target="_blank">Perl (5.42.2)</a> | 0.978354 | 0.014830 | 3.92x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 2.50x faster than Helium
-- Ruby (3.4.9) is 1.02x faster than Helium
-- Python (3.11.2) is 1.14x slower than Helium
-- Perl (5.42.2) is 3.61x slower than Helium
+- JavaScript (Node v26.3.0) is 2.51x faster than Helium
+- Ruby (3.4.9) is 1.07x slower than Helium
+- Python (3.11.2) is 1.17x slower than Helium
+- Perl (5.42.2) is 3.92x slower than Helium
 
 ## compute-pi
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./compute-pi/pi.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.102365 | 0.005465 | 7.73x faster |
-| <a href="./compute-pi/pi.he" target="_blank">Helium</a> | 0.791643 | 0.013303 | 1.00x (baseline) |
-| <a href="./compute-pi/pi.rb" target="_blank">Ruby (3.4.9)</a> | 0.935723 | 0.168135 | 1.18x slower |
-| <a href="./compute-pi/pi.py" target="_blank">Python (3.11.2)</a> | 2.009823 | 0.121537 | 2.54x slower |
-| <a href="./compute-pi/pi.pl" target="_blank">Perl (5.42.2)</a> | 2.144395 | 0.013082 | 2.71x slower |
+| <a href="./compute-pi/pi.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.088462 | 0.001306 | 7.66x faster |
+| <a href="./compute-pi/pi.he" target="_blank">Helium</a> | 0.677322 | 0.016002 | 1.00x (baseline) |
+| <a href="./compute-pi/pi.rb" target="_blank">Ruby (3.4.9)</a> | 0.884048 | 0.008440 | 1.31x slower |
+| <a href="./compute-pi/pi.py" target="_blank">Python (3.11.2)</a> | 1.912902 | 0.059005 | 2.82x slower |
+| <a href="./compute-pi/pi.pl" target="_blank">Perl (5.42.2)</a> | 2.104410 | 0.014818 | 3.11x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 7.73x faster than Helium
-- Ruby (3.4.9) is 1.18x slower than Helium
-- Python (3.11.2) is 2.54x slower than Helium
-- Perl (5.42.2) is 2.71x slower than Helium
+- JavaScript (Node v26.3.0) is 7.66x faster than Helium
+- Ruby (3.4.9) is 1.31x slower than Helium
+- Python (3.11.2) is 2.82x slower than Helium
+- Perl (5.42.2) is 3.11x slower than Helium
 
 ## fibonacci
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./fibonacci/fib.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.176422 | 0.004807 | 7.19x faster |
-| <a href="./fibonacci/fib.rb" target="_blank">Ruby (3.4.9)</a> | 0.939940 | 0.022755 | 1.35x faster |
-| <a href="./fibonacci/fib.he" target="_blank">Helium</a> | 1.268299 | 0.008239 | 1.00x (baseline) |
-| <a href="./fibonacci/fib.py" target="_blank">Python (3.11.2)</a> | 1.769670 | 0.023779 | 1.40x slower |
-| <a href="./fibonacci/fib.pl" target="_blank">Perl (5.42.2)</a> | 6.190686 | 0.075949 | 4.88x slower |
+| <a href="./fibonacci/fib.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.162350 | 0.011141 | 7.17x faster |
+| <a href="./fibonacci/fib.rb" target="_blank">Ruby (3.4.9)</a> | 0.902243 | 0.044107 | 1.29x faster |
+| <a href="./fibonacci/fib.he" target="_blank">Helium</a> | 1.163597 | 0.012462 | 1.00x (baseline) |
+| <a href="./fibonacci/fib.py" target="_blank">Python (3.11.2)</a> | 1.680821 | 0.019684 | 1.44x slower |
+| <a href="./fibonacci/fib.pl" target="_blank">Perl (5.42.2)</a> | 5.973498 | 0.028061 | 5.13x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 7.19x faster than Helium
-- Ruby (3.4.9) is 1.35x faster than Helium
-- Python (3.11.2) is 1.40x slower than Helium
-- Perl (5.42.2) is 4.88x slower than Helium
+- JavaScript (Node v26.3.0) is 7.17x faster than Helium
+- Ruby (3.4.9) is 1.29x faster than Helium
+- Python (3.11.2) is 1.44x slower than Helium
+- Perl (5.42.2) is 5.13x slower than Helium
 
 ## hello-world
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./hello-world/hello.he" target="_blank">Helium</a> | 0.026902 | 0.002250 | 1.00x (baseline) |
-| <a href="./hello-world/hello.py" target="_blank">Python (3.11.2)</a> | 0.052469 | 0.002257 | 1.95x slower |
-| <a href="./hello-world/hello.pl" target="_blank">Perl (5.42.2)</a> | 0.055096 | 0.001738 | 2.05x slower |
-| <a href="./hello-world/hello.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.083497 | 0.003099 | 3.10x slower |
-| <a href="./hello-world/hello.rb" target="_blank">Ruby (3.4.9)</a> | 0.177595 | 0.013600 | 6.60x slower |
+| <a href="./hello-world/hello.he" target="_blank">Helium</a> | 0.024083 | 0.000655 | 1.00x (baseline) |
+| <a href="./hello-world/hello.py" target="_blank">Python (3.11.2)</a> | 0.044948 | 0.001670 | 1.87x slower |
+| <a href="./hello-world/hello.pl" target="_blank">Perl (5.42.2)</a> | 0.049455 | 0.002471 | 2.05x slower |
+| <a href="./hello-world/hello.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.073823 | 0.002002 | 3.07x slower |
+| <a href="./hello-world/hello.rb" target="_blank">Ruby (3.4.9)</a> | 0.159578 | 0.009906 | 6.63x slower |
 
 ### Helium comparison:
-- Python (3.11.2) is 1.95x slower than Helium
+- Python (3.11.2) is 1.87x slower than Helium
 - Perl (5.42.2) is 2.05x slower than Helium
-- JavaScript (Node v26.3.0) is 3.10x slower than Helium
-- Ruby (3.4.9) is 6.60x slower than Helium
+- JavaScript (Node v26.3.0) is 3.07x slower than Helium
+- Ruby (3.4.9) is 6.63x slower than Helium
 
 ## matrix
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./matrix/matrix.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.100438 | 0.005860 | 2.93x faster |
-| <a href="./matrix/matrix.he" target="_blank">Helium</a> | 0.294210 | 0.007394 | 1.00x (baseline) |
-| <a href="./matrix/matrix.rb" target="_blank">Ruby (3.4.9)</a> | 0.441424 | 0.019236 | 1.50x slower |
-| <a href="./matrix/matrix.py" target="_blank">Python (3.11.2)</a> | 0.543690 | 0.039630 | 1.85x slower |
-| <a href="./matrix/matrix.pl" target="_blank">Perl (5.42.2)</a> | 0.595757 | 0.016933 | 2.02x slower |
+| <a href="./matrix/matrix.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.088420 | 0.002258 | 2.74x faster |
+| <a href="./matrix/matrix.he" target="_blank">Helium</a> | 0.242260 | 0.004491 | 1.00x (baseline) |
+| <a href="./matrix/matrix.rb" target="_blank">Ruby (3.4.9)</a> | 0.390920 | 0.055924 | 1.61x slower |
+| <a href="./matrix/matrix.pl" target="_blank">Perl (5.42.2)</a> | 0.505818 | 0.006319 | 2.09x slower |
+| <a href="./matrix/matrix.py" target="_blank">Python (3.11.2)</a> | 0.552620 | 0.037042 | 2.28x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 2.93x faster than Helium
-- Ruby (3.4.9) is 1.50x slower than Helium
-- Python (3.11.2) is 1.85x slower than Helium
-- Perl (5.42.2) is 2.02x slower than Helium
+- JavaScript (Node v26.3.0) is 2.74x faster than Helium
+- Ruby (3.4.9) is 1.61x slower than Helium
+- Perl (5.42.2) is 2.09x slower than Helium
+- Python (3.11.2) is 2.28x slower than Helium
 
 ## obj-allocation
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./obj-allocation/allocate.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.152586 | 0.009701 | 3.72x faster |
-| <a href="./obj-allocation/allocate.rb" target="_blank">Ruby (3.4.9)</a> | 0.416400 | 0.021593 | 1.36x faster |
-| <a href="./obj-allocation/allocate.he" target="_blank">Helium</a> | 0.567638 | 0.007255 | 1.00x (baseline) |
-| <a href="./obj-allocation/allocate.py" target="_blank">Python (3.11.2)</a> | 1.013885 | 0.045182 | 1.79x slower |
-| <a href="./obj-allocation/allocate.pl" target="_blank">Perl (5.42.2)</a> | 1.172749 | 0.026821 | 2.07x slower |
+| <a href="./obj-allocation/allocate.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.140139 | 0.004660 | 3.45x faster |
+| <a href="./obj-allocation/allocate.rb" target="_blank">Ruby (3.4.9)</a> | 0.408523 | 0.020999 | 1.18x faster |
+| <a href="./obj-allocation/allocate.he" target="_blank">Helium</a> | 0.483477 | 0.050917 | 1.00x (baseline) |
+| <a href="./obj-allocation/allocate.py" target="_blank">Python (3.11.2)</a> | 0.879792 | 0.007878 | 1.82x slower |
+| <a href="./obj-allocation/allocate.pl" target="_blank">Perl (5.42.2)</a> | 1.087691 | 0.024262 | 2.25x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 3.72x faster than Helium
-- Ruby (3.4.9) is 1.36x faster than Helium
-- Python (3.11.2) is 1.79x slower than Helium
-- Perl (5.42.2) is 2.07x slower than Helium
+- JavaScript (Node v26.3.0) is 3.45x faster than Helium
+- Ruby (3.4.9) is 1.18x faster than Helium
+- Python (3.11.2) is 1.82x slower than Helium
+- Perl (5.42.2) is 2.25x slower than Helium
 
 ## sieve
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./sieve/sieve.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.122890 | 0.005217 | 1.89x faster |
-| <a href="./sieve/sieve.he" target="_blank">Helium</a> | 0.232848 | 0.006104 | 1.00x (baseline) |
-| <a href="./sieve/sieve.py" target="_blank">Python (3.11.2)</a> | 0.361056 | 0.020779 | 1.55x slower |
-| <a href="./sieve/sieve.rb" target="_blank">Ruby (3.4.9)</a> | 0.396278 | 0.020330 | 1.70x slower |
-| <a href="./sieve/sieve.pl" target="_blank">Perl (5.42.2)</a> | 0.494505 | 0.007606 | 2.12x slower |
+| <a href="./sieve/sieve.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.107264 | 0.006557 | 1.90x faster |
+| <a href="./sieve/sieve.he" target="_blank">Helium</a> | 0.204105 | 0.001312 | 1.00x (baseline) |
+| <a href="./sieve/sieve.py" target="_blank">Python (3.11.2)</a> | 0.330755 | 0.013616 | 1.62x slower |
+| <a href="./sieve/sieve.rb" target="_blank">Ruby (3.4.9)</a> | 0.344405 | 0.034278 | 1.69x slower |
+| <a href="./sieve/sieve.pl" target="_blank">Perl (5.42.2)</a> | 0.455184 | 0.003895 | 2.23x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 1.89x faster than Helium
-- Python (3.11.2) is 1.55x slower than Helium
-- Ruby (3.4.9) is 1.70x slower than Helium
-- Perl (5.42.2) is 2.12x slower than Helium
+- JavaScript (Node v26.3.0) is 1.90x faster than Helium
+- Python (3.11.2) is 1.62x slower than Helium
+- Ruby (3.4.9) is 1.69x slower than Helium
+- Perl (5.42.2) is 2.23x slower than Helium
 
 ## simple-loop
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./simple-loop/loop.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.091446 | 0.004870 | 3.56x faster |
-| <a href="./simple-loop/loop.rb" target="_blank">Ruby (3.4.9)</a> | 0.292545 | 0.010228 | 1.11x faster |
-| <a href="./simple-loop/loop.he" target="_blank">Helium</a> | 0.325143 | 0.010772 | 1.00x (baseline) |
-| <a href="./simple-loop/loop.pl" target="_blank">Perl (5.42.2)</a> | 0.510699 | 0.022483 | 1.57x slower |
-| <a href="./simple-loop/loop.py" target="_blank">Python (3.11.2)</a> | 0.890610 | 0.040873 | 2.74x slower |
+| <a href="./simple-loop/loop.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.078915 | 0.002209 | 3.42x faster |
+| <a href="./simple-loop/loop.he" target="_blank">Helium</a> | 0.270002 | 0.005477 | 1.00x (baseline) |
+| <a href="./simple-loop/loop.rb" target="_blank">Ruby (3.4.9)</a> | 0.270010 | 0.014424 | 1.00x slower |
+| <a href="./simple-loop/loop.pl" target="_blank">Perl (5.42.2)</a> | 0.462032 | 0.007442 | 1.71x slower |
+| <a href="./simple-loop/loop.py" target="_blank">Python (3.11.2)</a> | 0.808452 | 0.080823 | 2.99x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 3.56x faster than Helium
-- Ruby (3.4.9) is 1.11x faster than Helium
-- Perl (5.42.2) is 1.57x slower than Helium
-- Python (3.11.2) is 2.74x slower than Helium
+- JavaScript (Node v26.3.0) is 3.42x faster than Helium
+- Ruby (3.4.9) is 1.00x slower than Helium
+- Perl (5.42.2) is 1.71x slower than Helium
+- Python (3.11.2) is 2.99x slower than Helium
 
 ## sqrt
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./sqrt/sqrt.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.094736 | 0.010317 | 1.52x faster |
-| <a href="./sqrt/sqrt.he" target="_blank">Helium</a> | 0.143621 | 0.006112 | 1.00x (baseline) |
-| <a href="./sqrt/sqrt.pl" target="_blank">Perl (5.42.2)</a> | 0.253164 | 0.009488 | 1.76x slower |
-| <a href="./sqrt/sqrt.py" target="_blank">Python (3.11.2)</a> | 0.273703 | 0.015776 | 1.91x slower |
-| <a href="./sqrt/sqrt.rb" target="_blank">Ruby (3.4.9)</a> | 0.311471 | 0.008264 | 2.17x slower |
+| <a href="./sqrt/sqrt.js" target="_blank">JavaScript (Node v26.3.0)</a> | 0.083343 | 0.004885 | 1.44x faster |
+| <a href="./sqrt/sqrt.he" target="_blank">Helium</a> | 0.120278 | 0.002628 | 1.00x (baseline) |
+| <a href="./sqrt/sqrt.pl" target="_blank">Perl (5.42.2)</a> | 0.237928 | 0.002357 | 1.98x slower |
+| <a href="./sqrt/sqrt.py" target="_blank">Python (3.11.2)</a> | 0.247809 | 0.016124 | 2.06x slower |
+| <a href="./sqrt/sqrt.rb" target="_blank">Ruby (3.4.9)</a> | 0.278896 | 0.005449 | 2.32x slower |
 
 ### Helium comparison:
-- JavaScript (Node v26.3.0) is 1.52x faster than Helium
-- Perl (5.42.2) is 1.76x slower than Helium
-- Python (3.11.2) is 1.91x slower than Helium
-- Ruby (3.4.9) is 2.17x slower than Helium
+- JavaScript (Node v26.3.0) is 1.44x faster than Helium
+- Perl (5.42.2) is 1.98x slower than Helium
+- Python (3.11.2) is 2.06x slower than Helium
+- Ruby (3.4.9) is 2.32x slower than Helium
 
 ## word-freq
 
 | Program | Median Time | Std Dev | vs Helium |
 |--------|------------------|---------|-------------|
-| <a href="./word-freq/freq.py" target="_blank">Python (3.11.2)</a> | 0.925295 | 0.081383 | 1.06x faster |
-| <a href="./word-freq/freq.he" target="_blank">Helium</a> | 0.979589 | 0.026484 | 1.00x (baseline) |
-| <a href="./word-freq/freq.js" target="_blank">JavaScript (Node v26.3.0)</a> | 1.316953 | 0.068527 | 1.34x slower |
-| <a href="./word-freq/freq.rb" target="_blank">Ruby (3.4.9)</a> | 1.439344 | 0.041587 | 1.47x slower |
-| <a href="./word-freq/freq.pl" target="_blank">Perl (5.42.2)</a> | 1.802743 | 0.043219 | 1.84x slower |
+| <a href="./word-freq/freq.he" target="_blank">Helium</a> | 0.776792 | 0.079934 | 1.00x (baseline) |
+| <a href="./word-freq/freq.py" target="_blank">Python (3.11.2)</a> | 0.796781 | 0.010146 | 1.03x slower |
+| <a href="./word-freq/freq.js" target="_blank">JavaScript (Node v26.3.0)</a> | 1.164688 | 0.048051 | 1.50x slower |
+| <a href="./word-freq/freq.rb" target="_blank">Ruby (3.4.9)</a> | 1.261303 | 0.019990 | 1.62x slower |
+| <a href="./word-freq/freq.pl" target="_blank">Perl (5.42.2)</a> | 1.556165 | 0.078716 | 2.00x slower |
 
 ### Helium comparison:
-- Python (3.11.2) is 1.06x faster than Helium
-- JavaScript (Node v26.3.0) is 1.34x slower than Helium
-- Ruby (3.4.9) is 1.47x slower than Helium
-- Perl (5.42.2) is 1.84x slower than Helium
+- Python (3.11.2) is 1.03x slower than Helium
+- JavaScript (Node v26.3.0) is 1.50x slower than Helium
+- Ruby (3.4.9) is 1.62x slower than Helium
+- Perl (5.42.2) is 2.00x slower than Helium
 
