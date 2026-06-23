@@ -50,6 +50,10 @@ typedef enum {
     OP_TYPE,
 
     OP_IMPORT,
+    OP_EXPORT_SET,
+    OP_EXPORT_GET,
+    OP_EXPORT_DEFINE,
+    OP_EXPORT_DEFINE_CONST,
 
     OP_PUSH,
 

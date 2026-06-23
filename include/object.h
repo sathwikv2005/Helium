@@ -74,6 +74,7 @@ typedef struct {
     Obj obj;
     Value value;
     bool isConst;
+    bool isExported;
 } ObjVariable;
 
 typedef struct {

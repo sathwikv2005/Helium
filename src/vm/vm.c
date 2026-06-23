@@ -172,6 +172,82 @@ static InterpretResult run() {
 
                 break;
             }
+            case OP_EXPORT_DEFINE: {
+                ObjString* name = READ_STRING();
+                Value value = peek(0);
+                push(OBJ_VAL(name));
+
+                ObjVariable* variable = newVariable(value, false);
+                variable->isExported = true;
+                push(OBJ_VAL(variable));
+
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
+
+                pop();  // variable
+                pop();  // name
+                pop();  // original value
+
+                break;
+            }
+            case OP_EXPORT_DEFINE_CONST: {
+                ObjString* name = READ_STRING();
+                Value value = peek(0);
+                push(OBJ_VAL(name));
+
+                ObjVariable* variable = newVariable(value, true);
+                variable->isExported = true;
+                push(OBJ_VAL(variable));
+
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
+
+                pop();  // variable
+                pop();  // name
+                pop();  // original value
+
+                break;
+            }
+            case OP_EXPORT_SET: {
+                ObjString* name = READ_STRING();
+                Value value;
+
+                if (!tableGet(&frame->module->globals, name, &value)) {
+                    RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+                }
+
+                if (!IS_VARIABLE(value)) {
+                    RUNTIME_ERROR("Internal error: expected variable.",
+                                  name->chars);
+                }
+                ObjVariable* var = AS_VARIABLE(value);
+
+                if (var->isConst) {
+                    RUNTIME_ERROR("Cannot assign to const variable '%s'.",
+                                  name->chars);
+                }
+                var->isExported = true;
+                var->value = peek(0);
+                break;
+            }
+            case OP_EXPORT_GET: {
+                ObjString* name = READ_STRING();
+                Value value;
+
+                if (!tableGet(&frame->module->globals, name, &value)) {
+                    if (!tableGet(&vm.builtins, name, &value)) {
+                        RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+                    }
+                }
+
+                if (IS_VARIABLE(value)) {
+                    ObjVariable* var = AS_VARIABLE(value);
+                    var->isExported = true;
+                    push(var->value);
+                } else {
+                    RUNTIME_ERROR("Can only export variables");
+                }
+
+                break;
+            }
             case OP_GET_UPVALUE: {
                 uint8_t slot = READ_BYTE();
                 push(*frame->closure->upvalues[slot]->location);
@@ -223,6 +299,25 @@ static InterpretResult run() {
                             pop();
                             push(NULL_VAL);  // return null as default
                         }
+                        break;
+                    }
+                    case OBJ_MODULE: {
+                        ObjModule* module = (ObjModule*)target;
+                        if (tableGet(&module->globals, name, &value)) {
+                            if (!IS_VARIABLE(value)) {
+                                RUNTIME_ERROR("Can only import variables.");
+                            }
+                            ObjVariable* variable = AS_VARIABLE(value);
+                            if (!variable->isExported) {
+                                RUNTIME_ERROR("%s is not exported",
+                                              name->chars);
+                            }
+                            pop();
+                            push(variable->value);
+                            break;
+                        }
+                        RUNTIME_ERROR("%s does not exist in %s", name->chars,
+                                      module->path->chars);
                         break;
                     }
                     default: {

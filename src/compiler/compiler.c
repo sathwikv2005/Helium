@@ -11,6 +11,7 @@ Compiler* current = NULL;
 ClassCompiler* currentClass = NULL;
 
 ObjModule* currentModule = NULL;
+bool isExported = false;
 
 Chunk* currentChunk() { return &current->function->chunk; }
 
@@ -45,6 +46,14 @@ void statement() {
 }
 
 void declaration() {
+    if (match(TOKEN_EXPORT)) {
+        isExported = true;
+
+        if (match(TOKEN_EXPORT)) {
+            error("Duplicate 'export' modifier.");
+        }
+    }
+
     if (match(TOKEN_CLASS)) {
         classDeclaration();
     } else if (match(TOKEN_FUNCTION)) {
@@ -56,6 +65,7 @@ void declaration() {
     } else {
         statement();
     }
+    isExported = false;
     // recover from panic mode.
     if (parser.panicMode) synchronize();
 }

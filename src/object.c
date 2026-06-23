@@ -339,6 +339,7 @@ ObjVariable* newVariable(Value value, bool isConst) {
     ObjVariable* var = ALLOCATE_OBJ(ObjVariable, OBJ_VARIABLE);
     var->value = value;
     var->isConst = isConst;
+    var->isExported = false;
     return var;
 }
 

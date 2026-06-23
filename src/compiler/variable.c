@@ -14,7 +14,9 @@ void defineVariable(uint8_t global, bool isConst) {
         markInitialized();
         return;
     }
-    emitBytes(isConst ? OP_DEFINE_GLOBAL_CONST : OP_DEFINE_GLOBAL, global);
+    uint8_t op = isConst ? OP_DEFINE_GLOBAL_CONST : OP_DEFINE_GLOBAL;
+    if (isExported) op = isConst ? OP_EXPORT_DEFINE_CONST : OP_EXPORT_DEFINE;
+    emitBytes(op, global);
 }
 
 void variable(bool canAssign) { namedVariable(parser.previous, canAssign); }
@@ -39,6 +41,10 @@ void namedVariable(Token name, bool canAssign) {
         arg = identifierConstant(&name);
         getOp = OP_GET_GLOBAL;
         setOp = OP_SET_GLOBAL;
+        if (isExported) {
+            setOp = OP_EXPORT_SET;
+            getOp = OP_EXPORT_GET;
+        }
     }
 
     updateState.getOp = getOp;
