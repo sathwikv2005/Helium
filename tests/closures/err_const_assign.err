@@ -1,1 +1,1 @@
-[line 5] Error at '=': Cannot assign to const variable.
+script:5: error at '=': Cannot assign to const variable.

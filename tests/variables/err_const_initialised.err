@@ -1,2 +1,2 @@
-[line 1] Error at 'a': Const variable must be initialized.
-[line 2] Error at 'b': Const variable must be initialized.
+script:1: error at 'a': Const variable must be initialized.
+script:2: error at 'b': Const variable must be initialized.

@@ -1,2 +1,2 @@
 Cannot assign to const variable 'x'.
-[line 3] in script
+script:3: in script

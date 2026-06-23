@@ -1,8 +1,8 @@
-[line 1] Error at ')': Expect expression.
-[line 2] Error at '||': Expect expression.
-[line 3] Error at '&&': Expect expression.
-[line 4] Error at '||': Expect expression.
-[line 5] Error at ')': Expect expression.
-[line 6] Error at 'or': Expect expression.
-[line 7] Error at 'and': Expect expression.
-[line 8] Error at 'or': Expect expression.
+script:1: error at ')': Expect expression.
+script:2: error at '||': Expect expression.
+script:3: error at '&&': Expect expression.
+script:4: error at '||': Expect expression.
+script:5: error at ')': Expect expression.
+script:6: error at 'or': Expect expression.
+script:7: error at 'and': Expect expression.
+script:8: error at 'or': Expect expression.

@@ -1,1 +1,1 @@
-[line 1] Error at 'return': Can't return from top-level code.
+script:1: error at 'return': Can't return from top-level code.

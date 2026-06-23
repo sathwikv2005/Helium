@@ -1,2 +1,2 @@
-[line 3] Error at 'super': Can't use 'super' in a class with no superclass.
-[line 7] Error at 'super': Can't use 'super' outside of a class.
+script:3: error at 'super': Can't use 'super' in a class with no superclass.
+script:7: error at 'super': Can't use 'super' outside of a class.
