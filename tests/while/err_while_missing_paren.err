@@ -1,1 +1,1 @@
-[line 2] Error at 'i': Expect '(' after 'while'.
+script:2: error at 'i': Expect '(' after 'while'.

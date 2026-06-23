@@ -5,6 +5,7 @@
 #include "vm.h"
 
 ObjFunction* compile(const char* source);
+ObjFunction* compileModule(const char* source, ObjModule* module);
 void markCompilerRoots();
 
 #endif

@@ -1,4 +1,4 @@
-[line 1] Error at ';': Expect ':' after expression.
-[line 2] Error at ':': Expect ';' after value
-[line 3] Error at '?': Expect expression.
-[line 4] Error at ';': Expect expression.
+script:1: error at ';': Expect ':' after expression.
+script:2: error at ':': Expect ';' after value
+script:3: error at '?': Expect expression.
+script:4: error at ';': Expect expression.

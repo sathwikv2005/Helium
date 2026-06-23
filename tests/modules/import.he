@@ -1,0 +1,17 @@
+import "tests\modules\export.he" as e
+
+
+var t = e.test() + 10;
+print t;
+print e.test();
+
+var a = e.A(190);
+var b = e.A(340);
+print a.get();
+print b.get();
+print a.value;
+print b.value;
+
+print e.a;
+
+print e.e2.get();

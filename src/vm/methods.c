@@ -13,11 +13,16 @@ void defineMethod(ObjString* name) {
     pop();
 }
 
+static void initNativeModuleStrings() {
+    vm.specialStrings[SPECIAL_STD_MATH] = copyString("std/math", 8);
+}
+
 void initSpecialStrings() {
     for (int i = 0; i < SPECIAL_COUNT; i++) {
         vm.specialStrings[i] = NULL;
     }
 
+    vm.specialStrings[SPECIAL_SCRIPT] = copyString("script", 6);
     vm.specialStrings[SPECIAL_INIT] = copyString("init", 4);
     vm.specialStrings[SPECIAL_PUSH] = copyString("push", 4);
     vm.specialStrings[SPECIAL_POP] = copyString("pop", 3);
@@ -28,4 +33,6 @@ void initSpecialStrings() {
     vm.specialStrings[SPECIAL_TOUPPER] = copyString("toUpper", 7);
     vm.specialStrings[SPECIAL_ISEMPTY] = copyString("isEmpty", 7);
     vm.specialStrings[SPECIAL_SPLIT] = copyString("split", 5);
+
+    initNativeModuleStrings();
 }

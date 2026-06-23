@@ -183,6 +183,7 @@ void breakStatement();
 void continueStatement();
 void printStatement();
 void returnStatement();
+void importStatement();
 
 // declaration
 void declaration();
@@ -227,5 +228,7 @@ Chunk* currentChunk();
 void initCompiler(Compiler* compiler, FunctionType type);
 ObjFunction* endCompiler();
 void resetUpdateState();
+extern ObjModule* currentModule;
+extern bool isExported;
 
 #endif

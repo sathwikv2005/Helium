@@ -1,8 +1,11 @@
+#include "time.h"
 #include "vm_common.h"
 
 VM vm;
 
 void initVM() {
+    srand((unsigned)time(NULL));
+
     resetStack();
     vm.objects = NULL;
     vm.grayCount = 0;
@@ -12,18 +15,19 @@ void initVM() {
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
     vm.currentGCMark = true;
-    initTable(&vm.globals);
     initTable(&vm.strings);
+    initTable(&vm.builtins);
 
     initSpecialStrings();
 
+    mapModules();
     mapNatives();
 }
 
 void freeVM() {
     freeObjects();
+    freeTable(&vm.builtins);
     freeTable(&vm.strings);
-    freeTable(&vm.globals);
 }
 
 static InterpretResult run() {
@@ -100,7 +104,7 @@ static InterpretResult run() {
                 ObjString* name = READ_STRING();
                 Value value;
 
-                if (!tableGet(&vm.globals, name, &value)) {
+                if (!tableGet(&frame->module->globals, name, &value)) {
                     RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
                 }
 
@@ -121,15 +125,20 @@ static InterpretResult run() {
             case OP_GET_GLOBAL: {
                 ObjString* name = READ_STRING();
                 Value value;
-                if (!tableGet(&vm.globals, name, &value)) {
-                    RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+
+                if (!tableGet(&frame->module->globals, name, &value)) {
+                    if (!tableGet(&vm.builtins, name, &value)) {
+                        RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+                    }
                 }
+
                 if (IS_VARIABLE(value)) {
                     ObjVariable* var = AS_VARIABLE(value);
                     push(var->value);
-                    break;
-                } else
+                } else {
                     push(value);
+                }
+
                 break;
             }
             case OP_DEFINE_GLOBAL: {
@@ -141,7 +150,7 @@ static InterpretResult run() {
                 ObjVariable* variable = newVariable(value, false);
                 push(OBJ_VAL(variable));
 
-                tableSet(&vm.globals, name, OBJ_VAL(variable));
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
 
                 pop();  // variable
                 pop();  // name
@@ -159,11 +168,87 @@ static InterpretResult run() {
                 ObjVariable* variable = newVariable(value, true);
                 push(OBJ_VAL(variable));
 
-                tableSet(&vm.globals, name, OBJ_VAL(variable));
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
 
                 pop();  // variable
                 pop();  // name
                 pop();  // original value
+
+                break;
+            }
+            case OP_EXPORT_DEFINE: {
+                ObjString* name = READ_STRING();
+                Value value = peek(0);
+                push(OBJ_VAL(name));
+
+                ObjVariable* variable = newVariable(value, false);
+                variable->isExported = true;
+                push(OBJ_VAL(variable));
+
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
+
+                pop();  // variable
+                pop();  // name
+                pop();  // original value
+
+                break;
+            }
+            case OP_EXPORT_DEFINE_CONST: {
+                ObjString* name = READ_STRING();
+                Value value = peek(0);
+                push(OBJ_VAL(name));
+
+                ObjVariable* variable = newVariable(value, true);
+                variable->isExported = true;
+                push(OBJ_VAL(variable));
+
+                tableSet(&frame->module->globals, name, OBJ_VAL(variable));
+
+                pop();  // variable
+                pop();  // name
+                pop();  // original value
+
+                break;
+            }
+            case OP_EXPORT_SET: {
+                ObjString* name = READ_STRING();
+                Value value;
+
+                if (!tableGet(&frame->module->globals, name, &value)) {
+                    RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+                }
+
+                if (!IS_VARIABLE(value)) {
+                    RUNTIME_ERROR("Internal error: expected variable.",
+                                  name->chars);
+                }
+                ObjVariable* var = AS_VARIABLE(value);
+
+                if (var->isConst) {
+                    RUNTIME_ERROR("Cannot assign to const variable '%s'.",
+                                  name->chars);
+                }
+                var->isExported = true;
+                var->value = peek(0);
+                break;
+            }
+            case OP_EXPORT_GET: {
+                ObjString* name = READ_STRING();
+                Value value;
+
+                if (!tableGet(&frame->module->globals, name, &value)) {
+                    if (!tableGet(&vm.builtins, name, &value)) {
+                        RUNTIME_ERROR("Undefined variable '%s'.", name->chars);
+                    }
+                }
+
+                if (IS_VARIABLE(value)) {
+                    ObjVariable* var = AS_VARIABLE(value);
+                    var->isExported = true;
+                    push(var->value);
+                } else {
+                    RUNTIME_ERROR("Can only export variables");
+                }
 
                 break;
             }
@@ -218,6 +303,25 @@ static InterpretResult run() {
                             pop();
                             push(NULL_VAL);  // return null as default
                         }
+                        break;
+                    }
+                    case OBJ_MODULE: {
+                        ObjModule* module = (ObjModule*)target;
+                        if (tableGet(&module->globals, name, &value)) {
+                            if (!IS_VARIABLE(value)) {
+                                RUNTIME_ERROR("Can only import variables.");
+                            }
+                            ObjVariable* variable = AS_VARIABLE(value);
+                            if (!variable->isExported) {
+                                RUNTIME_ERROR("%s is not exported",
+                                              name->chars);
+                            }
+                            pop();
+                            push(variable->value);
+                            break;
+                        }
+                        RUNTIME_ERROR("%s does not exist in %s", name->chars,
+                                      module->path->chars);
                         break;
                     }
                     default: {
@@ -279,7 +383,17 @@ static InterpretResult run() {
                                           method->chars);
                         }
                         break;
-
+                    case OBJ_MODULE:
+                        frame->ip = ip;
+                        if (!invokeModuleMethod(AS_MODULE(receiver), argCount,
+                                                method)) {
+                            RUNTIME_ERROR("%s has no export '%s'.",
+                                          AS_MODULE(receiver)->path->chars,
+                                          method->chars);
+                        }
+                        frame = &vm.frames[vm.frameCount - 1];
+                        ip = frame->ip;
+                        break;
                     default:
                         frame->ip = ip;
 
@@ -590,7 +704,7 @@ static InterpretResult run() {
                 ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
                 ObjClosure* closure = newClosure(function);
                 push(OBJ_VAL(closure));
-
+                closure->module = frame->module;
                 for (int i = 0; i < closure->upvalueCount; i++) {
                     uint8_t isLocal = READ_BYTE();
                     uint8_t index = READ_BYTE();
@@ -604,6 +718,16 @@ static InterpretResult run() {
 
                 break;
             }
+            case OP_IMPORT: {
+                Value value = pop();
+                ObjString* path = AS_STRING(value);
+                frame->ip = ip;
+                ObjModule* module = loadModule(path);
+                frame = &vm.frames[vm.frameCount - 1];
+                ip = frame->ip;
+                push(OBJ_VAL(module));
+                break;
+            }
             case OP_CLOSE_UPVALUE:
                 closeUpvalues(vm.stackTop - 1);
                 pop();
@@ -611,11 +735,16 @@ static InterpretResult run() {
             case OP_RETURN: {
                 Value result = pop();
                 closeUpvalues(frame->slots);
+                ObjModule* module = frame->module;
                 vm.frameCount--;
                 if (vm.frameCount == 0) {
                     pop();
                     frame->ip = ip;
                     return INTERPRET_OK;
+                }
+                if (module != NULL && frame->closure->function->name == NULL) {
+                    // returning from module script
+                    result = OBJ_VAL(module);
                 }
 
                 vm.stackTop = frame->slots;
@@ -667,14 +796,17 @@ InterpretResult interpret(const char* source) {
             return INTERPRET_EXIT;
     }
 
-    ObjFunction* function = compile(source);
+    ObjModule* mainModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
+    push(OBJ_VAL(mainModule));
+    ObjFunction* function = compileModule(source, mainModule);
 
     if (function == NULL) {
         return INTERPRET_COMPILE_ERROR;
     }
-
     push(OBJ_VAL(function));
     ObjClosure* closure = newClosure(function);
+    closure->module = mainModule;
+    pop();
     pop();
     push(OBJ_VAL(closure));
     callValue(OBJ_VAL(closure), 0);

@@ -155,6 +155,9 @@ void printObject(Value value) {
         case OBJ_VARIABLE:
             printf("Variable");
             break;
+        case OBJ_MODULE:
+            printf("<module %s>", AS_MODULE(value)->path->chars);
+            break;
     }
 }
 
@@ -195,6 +198,8 @@ ObjString* objType(Value value) {
 
         case OBJ_VARIABLE:
             return copyString("variable", 8);
+        case OBJ_MODULE:
+            return copyString("module", 6);
     }
 
     return copyString("unknown type", 12);
@@ -334,6 +339,7 @@ ObjVariable* newVariable(Value value, bool isConst) {
     ObjVariable* var = ALLOCATE_OBJ(ObjVariable, OBJ_VARIABLE);
     var->value = value;
     var->isConst = isConst;
+    var->isExported = false;
     return var;
 }
 
@@ -366,7 +372,7 @@ ObjClosure* newClosure(ObjFunction* function) {
         upvalues[i] = NULL;
     }
     ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
-
+    closure->module = NULL;
     closure->function = function;
     closure->upvalues = upvalues;
     closure->upvalueCount = function->upvalueCount;
@@ -414,4 +420,11 @@ ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type) {
     arrayMethod->type = type;
     arrayMethod->receiver = array;
     return arrayMethod;
+}
+
+ObjModule* newModule(ObjString* path) {
+    ObjModule* module = ALLOCATE_OBJ(ObjModule, OBJ_MODULE);
+    module->path = path;
+    initTable(&module->globals);
+    return module;
 }

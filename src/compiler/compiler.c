@@ -10,6 +10,9 @@ Compiler* current = NULL;
 
 ClassCompiler* currentClass = NULL;
 
+ObjModule* currentModule = NULL;
+bool isExported = false;
+
 Chunk* currentChunk() { return &current->function->chunk; }
 
 void resetUpdateState() {
@@ -36,11 +39,22 @@ void statement() {
         beginScope();
         block();
         endScope();
+    } else if (match(TOKEN_IMPORT)) {
+        importStatement();
     } else
         expressionStatement();
 }
 
 void declaration() {
+    bool prev = isExported;
+    if (match(TOKEN_EXPORT)) {
+        isExported = true;
+
+        if (match(TOKEN_EXPORT)) {
+            error("Duplicate 'export' modifier.");
+        }
+    }
+
     if (match(TOKEN_CLASS)) {
         classDeclaration();
     } else if (match(TOKEN_FUNCTION)) {
@@ -52,6 +66,7 @@ void declaration() {
     } else {
         statement();
     }
+    isExported = prev;
     // recover from panic mode.
     if (parser.panicMode) synchronize();
 }
@@ -119,6 +134,11 @@ ObjFunction* compile(const char* source) {
 
     ObjFunction* function = endCompiler();
     return parser.hadError ? NULL : function;
+}
+
+ObjFunction* compileModule(const char* source, ObjModule* module) {
+    currentModule = module;
+    return compile(source);
 }
 
 void markCompilerRoots() {

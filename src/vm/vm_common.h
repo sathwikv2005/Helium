@@ -12,6 +12,7 @@
 #include "../../include/debug.h"
 #include "../../include/memory.h"
 #include "../../include/nativeFn.h"
+#include "../../include/nativeModules.h"
 #include "../../include/object.h"
 #include "../../include/vm.h"
 

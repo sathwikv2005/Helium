@@ -18,7 +18,9 @@
 #define IS_HASHMAP(value) isObjType(value, OBJ_HASHMAP)
 #define IS_ARRAY(value) isObjType(value, OBJ_ARRAY)
 #define IS_ARRAY_METHOD(value) isObjType(value, OBJ_ARRAY_METHOD)
+#define IS_MODULE(value) isObjType(value, OBJ_MODULE)
 
+#define AS_MODULE(value) ((ObjModule*)AS_OBJ(value))
 #define AS_ARRAY_METHOD(value) ((ObjArrayMethod*)AS_OBJ(value))
 #define AS_ARRAY(value) ((ObjArray*)AS_OBJ(value))
 #define AS_HASHMAP(value) ((ObjHashMap*)AS_OBJ(value))
@@ -45,6 +47,7 @@ typedef enum {
     OBJ_HASHMAP,
     OBJ_ARRAY,
     OBJ_ARRAY_METHOD,
+    OBJ_MODULE
 } ObjType;
 
 struct Obj {
@@ -71,6 +74,7 @@ typedef struct {
     Obj obj;
     Value value;
     bool isConst;
+    bool isExported;
 } ObjVariable;
 
 typedef struct {
@@ -80,11 +84,19 @@ typedef struct {
     Chunk chunk;
     ObjString* name;
 } ObjFunction;
+
+typedef struct {
+    Obj obj;
+    Table globals;
+    ObjString* path;
+} ObjModule;
 typedef struct {
     Obj obj;
     ObjFunction* function;
     ObjUpvalue** upvalues;
     int upvalueCount;
+
+    ObjModule* module;
 } ObjClosure;
 
 typedef struct {
@@ -146,6 +158,7 @@ ObjNative* newNative(NativeFn function);
 ObjHashMap* newHashMap();
 ObjArray* newArray(int capacity);
 ObjArrayMethod* newArrayMethod(ObjArray* array, ArrayMethodType type);
+ObjModule* newModule(ObjString* path);
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);

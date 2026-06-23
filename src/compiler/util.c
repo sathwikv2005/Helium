@@ -5,7 +5,11 @@
 void errorAt(Token* token, const char* message) {
     if (parser.panicMode) return;
     parser.panicMode = true;
-    fprintf(stderr, "[line %d] Error", token->line);
+
+    if (currentModule != NULL) {
+        fprintf(stderr, "%s:", currentModule->path->chars);
+    }
+    fprintf(stderr, "%d: error", token->line);
 
     if (token->type == TOKEN_EOF) {
         fprintf(stderr, " at end");

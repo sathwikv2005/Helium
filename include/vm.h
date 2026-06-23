@@ -42,10 +42,15 @@ typedef struct {
     ObjClosure* closure;
     uint8_t* ip;
     Value* slots;
+
+    ObjModule* module;
 } CallFrame;
 
 typedef enum {
+    SPECIAL_SCRIPT,
     SPECIAL_INIT,
+
+    // native functions
     SPECIAL_PUSH,
     SPECIAL_POP,
     SPECIAL_LENGTH,
@@ -56,6 +61,9 @@ typedef enum {
     SPECIAL_ISEMPTY,
     SPECIAL_SPLIT,
 
+    // native modules
+    SPECIAL_STD_MATH,
+
     SPECIAL_COUNT
 } SpecialString;
 
@@ -65,7 +73,8 @@ typedef struct {
 
     Value stack[STACK_MAX];
     Table strings;
-    Table globals;
+
+    Table builtins;
 
     // interned string at startup
     ObjString* specialStrings[SPECIAL_COUNT];
@@ -112,4 +121,7 @@ Value pop();
 bool isFalsey(Value value);
 
 void runtimeError(const char* format, ...);
+bool callValue(Value callee, int argCount);
+
+char* readFile(const char* path);
 #endif

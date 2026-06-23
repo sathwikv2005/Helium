@@ -174,3 +174,30 @@ void returnStatement() {
         emitByte(OP_RETURN);
     }
 }
+
+void importStatement() {
+    if (match(TOKEN_IDENTIFIER)) {
+        ObjString* name =
+            copyString(parser.previous.start, parser.previous.length);
+
+        uint8_t global = identifierConstant(&parser.previous);
+
+        emitConstant(OBJ_VAL(name));
+        emitByte(OP_IMPORT);
+
+        defineVariable(global, true);
+    } else if (match(TOKEN_STRING)) {
+        ObjString* name =
+            copyString(parser.previous.start + 1, parser.previous.length - 2);
+
+        consume(TOKEN_AS, "Expect 'as' after path.");
+        uint8_t global = parseVariable("Expect alias for import.", true);
+
+        emitConstant(OBJ_VAL(name));
+        emitByte(OP_IMPORT);
+
+        defineVariable(global, true);
+    } else {
+        error("Invalid import.");
+    }
+}

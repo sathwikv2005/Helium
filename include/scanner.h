@@ -64,6 +64,9 @@ typedef enum {
     TOKEN_VAR,
     TOKEN_WHILE,
     TOKEN_TYPEOF,
+    TOKEN_IMPORT,
+    TOKEN_AS,
+    TOKEN_EXPORT,
 
     //
     TOKEN_ERROR,
