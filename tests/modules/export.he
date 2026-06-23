@@ -1,0 +1,22 @@
+import "tests\modules\export2.he" as e
+
+const sum = 100;
+function test(){
+    return 100;
+}
+
+export test;
+
+export class A{
+    init(value){
+        this.value = value;
+    }
+    get(){
+        return this.value + sum;
+    }
+}
+
+export const a = 1000;
+export var e2 = e;
+
+print "export.he";

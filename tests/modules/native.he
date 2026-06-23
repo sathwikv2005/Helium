@@ -1,0 +1,79 @@
+import "std/math" as math
+
+print math.sqrt(25);
+print math.min(10, 5);
+print math.max(10, 5);
+print math.abs(-42);
+
+print math.pow(2, 8);
+
+print math.sign(-10);
+print math.sign(0);
+print math.sign(10);
+
+print math.clamp(-5, 0, 100);
+print math.clamp(50, 0, 100);
+print math.clamp(150, 0, 100);
+
+print math.floor(3.9);
+print math.ceil(3.1);
+print math.round(3.5);
+print math.trunc(3.9);
+
+print math.cbrt(27);
+print math.exp(1);
+
+print math.degrees(math.PI);
+print math.radians(180);
+
+print math.log(math.E);
+print math.log10(1000);
+print math.log2(1024);
+
+print math.isNaN(123);
+
+print math.sin(0);
+print math.cos(0);
+print math.tan(0);
+
+print math.PI;
+print math.TAU;
+print math.E;
+
+var r = math.random();
+print r >= 0 and r < 1;
+
+for (var i = 0; i < 100; i = i + 1) {
+    var n = math.randomInt(1, 10);
+
+    if (n < 1 or n > 10) {
+        print "FAIL";
+    }
+}
+
+print "PASS";
+
+print math.sqrt(0);
+
+print math.min(-100, -200);
+print math.max(-100, -200);
+
+print math.abs(0);
+
+print math.pow(5, 0);
+print math.pow(2, -2);
+
+print math.clamp(5, 5, 5);
+
+print math.floor(-3.2);
+print math.ceil(-3.2);
+print math.round(-3.5);
+print math.trunc(-3.9);
+
+print math.cbrt(-27);
+
+print math.degrees(0);
+print math.radians(0);
+
+print math.sin(math.PI / 2);
+print math.cos(math.PI);

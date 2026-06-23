@@ -1,0 +1,5 @@
+const value = 18009;
+export function get(){
+    return value;
+}
+print "export2.he";
