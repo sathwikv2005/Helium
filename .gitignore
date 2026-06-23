@@ -9,7 +9,7 @@ gmon.out
 report.txt
 
 # local test files
-test.he
+test*.he
 
 #cmake
 build/
