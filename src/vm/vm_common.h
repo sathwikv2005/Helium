@@ -44,4 +44,7 @@ bool arrayMethodsFromName(ObjArray* receiver, int argCount, ObjString* method);
 bool stringMethodsFromName(ObjString* receiver, int argCount,
                            ObjString* method);
 
+// modules
+ObjModule* loadModule(ObjString* path);
+
 #endif

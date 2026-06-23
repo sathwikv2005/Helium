@@ -611,9 +611,11 @@ static InterpretResult run() {
             }
             case OP_IMPORT: {
                 Value value = pop();
-                ObjString* name = AS_STRING(value);
-
-                ObjModule* module = newModule(name);
+                ObjString* path = AS_STRING(value);
+                frame->ip = ip;
+                ObjModule* module = loadModule(path);
+                frame = &vm.frames[vm.frameCount - 1];
+                ip = frame->ip;
                 push(OBJ_VAL(module));
                 break;
             }
@@ -624,11 +626,16 @@ static InterpretResult run() {
             case OP_RETURN: {
                 Value result = pop();
                 closeUpvalues(frame->slots);
+                ObjModule* module = frame->module;
                 vm.frameCount--;
                 if (vm.frameCount == 0) {
                     pop();
                     frame->ip = ip;
                     return INTERPRET_OK;
+                }
+                if (module != NULL && frame->closure->function->name == NULL) {
+                    // returning from module script
+                    result = OBJ_VAL(module);
                 }
 
                 vm.stackTop = frame->slots;
@@ -680,14 +687,14 @@ InterpretResult interpret(const char* source) {
             return INTERPRET_EXIT;
     }
 
-    ObjFunction* function = compile(source);
+    ObjModule* mainModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
+    push(OBJ_VAL(mainModule));
+    ObjFunction* function = compileModule(source, mainModule);
 
     if (function == NULL) {
         return INTERPRET_COMPILE_ERROR;
     }
     push(OBJ_VAL(function));
-    ObjModule* mainModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
-    push(OBJ_VAL(mainModule));
     ObjClosure* closure = newClosure(function);
     closure->module = mainModule;
     pop();
@@ -696,4 +703,26 @@ InterpretResult interpret(const char* source) {
     callValue(OBJ_VAL(closure), 0);
 
     return run();
+}
+
+ObjModule* loadModule(ObjString* path) {
+    char* source = readFile(path->chars);
+
+    ObjModule* module = newModule(path);
+
+    ObjFunction* function = compileModule(source, module);
+    if (function == NULL) {
+        free(source);
+        return NULL;
+    }
+
+    ObjClosure* closure = newClosure(function);
+    closure->module = module;
+
+    push(OBJ_VAL(closure));
+    callValue(OBJ_VAL(closure), 0);
+
+    free(source);
+
+    return module;
 }

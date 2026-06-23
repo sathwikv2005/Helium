@@ -11,7 +11,7 @@ void runtimeError(const char* format, ...) {
         CallFrame* frame = &vm.frames[i];
         ObjFunction* function = frame->closure->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
-        fprintf(stderr, "[line %d] in ",
+        fprintf(stderr, "%s:%d: in ", frame->module->path->chars,
                 getLine(&frame->closure->function->chunk, instruction));
         if (function->name == NULL) {
             fprintf(stderr, "script\n");

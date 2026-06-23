@@ -228,5 +228,6 @@ Chunk* currentChunk();
 void initCompiler(Compiler* compiler, FunctionType type);
 ObjFunction* endCompiler();
 void resetUpdateState();
+extern ObjModule* currentModule;
 
 #endif

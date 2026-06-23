@@ -116,4 +116,6 @@ Value pop();
 bool isFalsey(Value value);
 
 void runtimeError(const char* format, ...);
+
+char* readFile(const char* path);
 #endif

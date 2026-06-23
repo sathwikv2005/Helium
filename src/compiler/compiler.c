@@ -10,6 +10,8 @@ Compiler* current = NULL;
 
 ClassCompiler* currentClass = NULL;
 
+ObjModule* currentModule = NULL;
+
 Chunk* currentChunk() { return &current->function->chunk; }
 
 void resetUpdateState() {
@@ -121,6 +123,11 @@ ObjFunction* compile(const char* source) {
 
     ObjFunction* function = endCompiler();
     return parser.hadError ? NULL : function;
+}
+
+ObjFunction* compileModule(const char* source, ObjModule* module) {
+    currentModule = module;
+    return compile(source);
 }
 
 void markCompilerRoots() {
