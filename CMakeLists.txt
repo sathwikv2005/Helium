@@ -51,6 +51,9 @@ else()
         -O3
         -march=native
         -flto
+        -falign-functions=32
+        -falign-loops=32
+        -fno-tree-vectorize
     )
 
     target_compile_options(debug PRIVATE
