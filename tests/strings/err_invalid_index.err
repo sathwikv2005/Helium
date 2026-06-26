@@ -1,2 +1,2 @@
-Index must be a number
-script:2: in script
+[31mRuntime Error: [0mIndex must be a number
+[33mscript:2:[0m in script

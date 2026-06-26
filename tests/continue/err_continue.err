@@ -1,1 +1,1 @@
-script:1: error at 'continue': Cannot use 'continue' outside of a loop.
+[31mCompiler Error: [0m[33mscript:[0m[33m1:[0m[2m at [0m[1m[36m'continue'[0m: Cannot use 'continue' outside of a loop.

@@ -1,1 +1,1 @@
-script:1: error at 'a': Can't read local variable in its own initializer.
+[31mCompiler Error: [0m[33mscript:[0m[33m1:[0m[2m at [0m[1m[36m'a'[0m: Can't read local variable in its own initializer.

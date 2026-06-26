@@ -1,1 +1,1 @@
-script:2: error at end: Expect '}' after block.
+[31mCompiler Error: [0m[33mscript:[0m[33m2:[0m[2m at [0m[1m[36mend[0m: Expect '}' after block.

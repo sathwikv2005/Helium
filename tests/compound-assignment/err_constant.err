@@ -1,2 +1,2 @@
-Cannot assign to const variable 'x'.
-script:3: in script
+[31mRuntime Error: [0mCannot assign to const variable 'x'.
+[33mscript:3:[0m in script

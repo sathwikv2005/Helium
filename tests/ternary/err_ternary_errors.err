@@ -1,4 +1,4 @@
-script:1: error at ';': Expect ':' after expression.
-script:2: error at ':': Expect ';' after value
-script:3: error at '?': Expect expression.
-script:4: error at ';': Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m1:[0m[2m at [0m[1m[36m';'[0m: Expect ':' after expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m2:[0m[2m at [0m[1m[36m':'[0m: Expect ';' after value
+[31mCompiler Error: [0m[33mscript:[0m[33m3:[0m[2m at [0m[1m[36m'?'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m4:[0m[2m at [0m[1m[36m';'[0m: Expect expression.

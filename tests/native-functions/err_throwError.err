@@ -1,2 +1,2 @@
-boom
-script:1: in script
+[31mRuntime Error: [0mboom
+[33mscript:1:[0m in script

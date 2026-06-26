@@ -1,2 +1,2 @@
-Only instances and maps have fields.
-script:3: in script
+[31mRuntime Error: [0mOnly instances and maps have fields.
+[33mscript:3:[0m in script

@@ -1,2 +1,2 @@
-script:1: error at 'a': Const variable must be initialized.
-script:2: error at 'b': Const variable must be initialized.
+[31mCompiler Error: [0m[33mscript:[0m[33m1:[0m[2m at [0m[1m[36m'a'[0m: Const variable must be initialized.
+[31mCompiler Error: [0m[33mscript:[0m[33m2:[0m[2m at [0m[1m[36m'b'[0m: Const variable must be initialized.

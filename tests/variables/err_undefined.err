@@ -1,2 +1,2 @@
-Undefined variable 'a'.
-script:1: in script
+[31mRuntime Error: [0mUndefined variable 'a'.
+[33mscript:1:[0m in script

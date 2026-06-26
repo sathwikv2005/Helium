@@ -1,2 +1,2 @@
-Field name must be a string.
-script:5: in script
+[31mRuntime Error: [0mField name must be a string.
+[33mscript:5:[0m in script

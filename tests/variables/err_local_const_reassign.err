@@ -1,1 +1,1 @@
-script:3: error at '=': Cannot assign to const variable.
+[31mCompiler Error: [0m[33mscript:[0m[33m3:[0m[2m at [0m[1m[36m'='[0m: Cannot assign to const variable.

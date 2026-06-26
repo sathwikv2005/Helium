@@ -1,2 +1,2 @@
-String index out of bounds
-script:2: in script
+[31mRuntime Error: [0mString index out of bounds
+[33mscript:2:[0m in script

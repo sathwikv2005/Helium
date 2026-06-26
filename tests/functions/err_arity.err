@@ -1,2 +1,2 @@
-Expected 2 arguments but got 1.
-script:5: in script
+[31mRuntime Error: [0mExpected 2 arguments but got 1.
+[33mscript:5:[0m in script

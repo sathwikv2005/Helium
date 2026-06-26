@@ -1,2 +1,2 @@
-Object has no length.
-script:1: in script
+[31mRuntime Error: [0mObject has no length.
+[33mscript:1:[0m in script

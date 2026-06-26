@@ -1,2 +1,2 @@
-Superclass must be a class.
-script:3: in script
+[31mRuntime Error: [0mSuperclass must be a class.
+[33mscript:3:[0m in script

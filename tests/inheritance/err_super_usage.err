@@ -1,2 +1,2 @@
-script:3: error at 'super': Can't use 'super' in a class with no superclass.
-script:7: error at 'super': Can't use 'super' outside of a class.
+[31mCompiler Error: [0m[33mscript:[0m[33m3:[0m[2m at [0m[1m[36m'super'[0m: Can't use 'super' in a class with no superclass.
+[31mCompiler Error: [0m[33mscript:[0m[33m7:[0m[2m at [0m[1m[36m'super'[0m: Can't use 'super' outside of a class.

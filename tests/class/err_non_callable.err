@@ -1,2 +1,2 @@
-Can only call functions and classes.
-script:9: in script
+[31mRuntime Error: [0mCan only call functions and classes.
+[33mscript:9:[0m in script

@@ -1,2 +1,2 @@
-Assertion failed: expected a truthy value, got false
-script:1: in script
+[31mRuntime Error: [0mAssertion failed: expected a truthy value, got false
+[33mscript:1:[0m in script

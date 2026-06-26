@@ -1,2 +1,2 @@
-number() expects 1 argument.
-script:1: in script
+[31mRuntime Error: [0mnumber() expects 1 argument.
+[33mscript:1:[0m in script

@@ -1,8 +1,8 @@
-script:1: error at ')': Expect expression.
-script:2: error at '||': Expect expression.
-script:3: error at '&&': Expect expression.
-script:4: error at '||': Expect expression.
-script:5: error at ')': Expect expression.
-script:6: error at 'or': Expect expression.
-script:7: error at 'and': Expect expression.
-script:8: error at 'or': Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m1:[0m[2m at [0m[1m[36m')'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m2:[0m[2m at [0m[1m[36m'||'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m3:[0m[2m at [0m[1m[36m'&&'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m4:[0m[2m at [0m[1m[36m'||'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m5:[0m[2m at [0m[1m[36m')'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m6:[0m[2m at [0m[1m[36m'or'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m7:[0m[2m at [0m[1m[36m'and'[0m: Expect expression.
+[31mCompiler Error: [0m[33mscript:[0m[33m8:[0m[2m at [0m[1m[36m'or'[0m: Expect expression.

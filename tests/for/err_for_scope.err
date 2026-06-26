@@ -1,2 +1,2 @@
-Undefined variable 'i'.
-script:4: in script
+[31mRuntime Error: [0mUndefined variable 'i'.
+[33mscript:4:[0m in script
