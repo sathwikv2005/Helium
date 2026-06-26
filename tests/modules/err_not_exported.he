@@ -1,0 +1,3 @@
+import "tests\modules\export2.he" as e
+
+print e.value;
