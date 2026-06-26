@@ -12,6 +12,7 @@ void initVM() {
     vm.grayCapacity = 0;
     vm.grayStack = NULL;
     vm.debugFlags = 0;
+    vm.atLineStart = true;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
     vm.currentGCMark = true;
@@ -673,6 +674,7 @@ static InterpretResult run() {
             case OP_PRINT: {
                 printValue(pop());
                 printf("\n");
+                vm.atLineStart = true;
                 break;
             }
             case OP_JUMP: {

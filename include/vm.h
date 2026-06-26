@@ -51,6 +51,7 @@ typedef enum {
     SPECIAL_INIT,
 
     // native functions
+    SPECIAL_PRINTF,
     SPECIAL_PUSH,
     SPECIAL_POP,
     SPECIAL_LENGTH,
@@ -95,6 +96,8 @@ typedef struct {
     int exitCode;
 
     jmp_buf vmJump;
+
+    bool atLineStart;
 
     // debug flags
     uint8_t debugFlags;

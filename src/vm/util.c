@@ -1,6 +1,7 @@
 #include "vm_common.h"
 
 void runtimeError(const char* format, ...) {
+    if (!vm.atLineStart) putchar('\n');
     fprintf(stderr, ANSI_RED "Runtime Error: " ANSI_RESET);
     va_list args;
     va_start(args, format);
