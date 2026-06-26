@@ -6,6 +6,7 @@
 #include "../include/common.h"
 #include "../include/debug.h"
 #include "../include/vm.h"
+#include "version.h"
 
 static void printBanner() {
     printf("\033[36m");  // cyan
@@ -20,12 +21,20 @@ static void printBanner() {
     printf("#           | |  | |  __/ | | |_| | | | | | |              #\n");
     printf("#           |_|  |_|\\___|_|_|\\__,_|_| |_| |_|              #\n");
     printf("#                                                          #\n");
-    printf("#                       Helium v0.1                        #\n");
+    printf("#                      Helium v%-28s#\n", HELIUM_VERSION_STRING);
     printf("#            Light as gas. Fast as lightning.              #\n");
     printf("#                                                          #\n");
     printf("############################################################\n\n");
 
     printf("\033[0m");
+}
+
+static void printVersion() {
+    printf("Helium v%s", HELIUM_VERSION_STRING);
+#ifdef HELIUM_DEBUG
+    printf("-debug");
+#endif
+    printf("\n");
 }
 
 static void repl() {
@@ -83,27 +92,31 @@ static void runFile(const char* path) {
     if (result == INTERPRET_RUNTIME_ERROR) exit(70);
     if (result == INTERPRET_EXIT) exit(vm.exitCode);
 }
-
 int main(int argc, const char* argv[]) {
     initVM();
 
-#ifdef HELIUM_DEBUG
-
     if (argc == 1) {
         repl();
-
+    } else if (strcmp(argv[1], "-v") == 0 ||
+               strcmp(argv[1], "--version") == 0) {
+        printVersion();
     } else if (argv[1][0] == '-') {
-        fprintf(stderr,
-                "Usage: helium <path> "
-                "[-d|-dt|-dc|-dsgc|-dlgc]\n");
-        exit(64);
+        fprintf(stderr, "Unknown option '%s'.\n", argv[1]);
+        fprintf(stderr, "Usage: helium <path>");
 
+#ifdef HELIUM_DEBUG
+        fprintf(stderr, " [-d|-dt|-dc|-dsgc|-dlgc]");
+#endif
+
+        fprintf(stderr, " | -v | --version\n");
+        exit(64);
     } else {
         const char* file = argv[1];
 
         for (int i = 2; i < argc; i++) {
             const char* arg = argv[i];
 
+#ifdef HELIUM_DEBUG
             if (strcmp(arg, "-d") == 0) {
                 SET_DEBUG();
 
@@ -119,32 +132,16 @@ int main(int argc, const char* argv[]) {
             } else if (strcmp(arg, "-dlgc") == 0) {
                 SET_DEBUG_LOG_GC();
 
-            } else {
-                fprintf(stderr, "Unknown flag: %s\n", arg);
-                fprintf(stderr,
-                        "Usage: helium <path> "
-                        "[-d|-dt|-dc|-dsgc|-dlgc]\n");
+            } else
+#endif
+            {
+                fprintf(stderr, "Unknown option '%s'.\n", arg);
                 exit(64);
             }
         }
 
         runFile(file);
     }
-
-#else
-
-    if (argc == 1) {
-        repl();
-
-    } else if (argc == 2) {
-        runFile(argv[1]);
-
-    } else {
-        fprintf(stderr, "Usage: helium <path>\n");
-        exit(64);
-    }
-
-#endif
 
     freeVM();
     return 0;
