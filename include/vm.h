@@ -113,6 +113,7 @@ extern VM vm;
 
 void initVM();
 void freeVM();
+InterpretResult interpretModule(const char* source, ObjModule* module);
 InterpretResult interpret(const char* source);
 void push(Value value);
 void swap(uint8_t offset);

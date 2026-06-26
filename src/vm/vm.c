@@ -787,7 +787,7 @@ static InterpretResult run() {
 #undef BINARY_OP
 }
 
-InterpretResult interpret(const char* source) {
+InterpretResult interpretModule(const char* source, ObjModule* module) {
     switch (setjmp(vm.vmJump)) {
         case JUMP_RUNTIME_ERROR:
             return INTERPRET_RUNTIME_ERROR;
@@ -796,20 +796,24 @@ InterpretResult interpret(const char* source) {
             return INTERPRET_EXIT;
     }
 
-    ObjModule* mainModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
-    push(OBJ_VAL(mainModule));
-    ObjFunction* function = compileModule(source, mainModule);
+    push(OBJ_VAL(module));
+    ObjFunction* function = compileModule(source, module);
 
     if (function == NULL) {
         return INTERPRET_COMPILE_ERROR;
     }
     push(OBJ_VAL(function));
     ObjClosure* closure = newClosure(function);
-    closure->module = mainModule;
+    closure->module = module;
     pop();
     pop();
     push(OBJ_VAL(closure));
     callValue(OBJ_VAL(closure), 0);
 
     return run();
+}
+
+InterpretResult interpret(const char* source) {
+    ObjModule* mainModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
+    return interpretModule(source, mainModule);
 }

@@ -8,6 +8,14 @@
 #include "../include/vm.h"
 #include "version.h"
 
+#ifdef _WIN32
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+#else
+#include <unistd.h>
+#endif
+
 static void printBanner() {
     printf("\033[36m");  // cyan
     printf("\033[3m");   // italic
@@ -38,8 +46,10 @@ static void printVersion() {
 }
 
 static void repl() {
-    printBanner();
-
+    if (isatty(fileno(stdin))) {
+        printBanner();
+    }
+    ObjModule* replModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
     char line[1024];
     for (;;) {
         printf("> ");
@@ -47,7 +57,7 @@ static void repl() {
             printf("\n");
             break;
         }
-        interpret(line);
+        interpretModule(line, replModule);
     }
 }
 
