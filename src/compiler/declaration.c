@@ -76,7 +76,12 @@ void constDeclaration() {
 
 void functionDeclaration() {
     uint8_t global = parseVariable("Expect function name.", true);
+    bool exported = isExported;
+    isExported = false;
+
     markInitialized();
     function(TYPE_FUNCTION);
+
+    isExported = exported;
     defineVariable(global, true);
 }
