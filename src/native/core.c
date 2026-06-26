@@ -62,7 +62,88 @@ static Value lenNative(int argCount, Value* args) {
     }
 }
 
+static void printChar(const char c) {
+    putchar(c);
+    vm.atLineStart = (c == '\n');
+}
+
+static Value printfNative(int argCount, Value* args) {
+    if (argCount < 1) {
+        runtimeError("printf() expects 1 or more arguments.");
+        return NULL_VAL;
+    }
+    if (!IS_STRING(args[0])) {
+        runtimeError("printf() expects a string.");
+        return NULL_VAL;
+    }
+    ObjString* format = AS_STRING(args[0]);
+    const char* chars = format->chars;
+
+    int nextArg = 1;
+    while (*chars) {
+        if (*chars == '\\') {
+            chars++;
+
+            switch (*chars) {
+                case '{':
+                    printChar('{');
+                    break;
+                case '}':
+                    printChar('}');
+                    break;
+                case 'n':
+                    printChar('\n');
+                    break;
+                case 't':
+                    printChar('\t');
+                    break;
+                case '\\':
+                    printChar('\\');
+                    break;
+                case '\0':
+                    runtimeError("Invalid escape sequence.");
+                    return NULL_VAL;
+                default:
+                    printChar('\\');
+                    printChar(*chars);
+                    break;
+            }
+
+            chars++;
+            continue;
+        }
+
+        if (*chars == '{') {
+            const char* p = chars + 1;
+
+            while (*p == ' ' || *p == '\t') p++;
+
+            if (*p == '}') {
+                if (nextArg >= argCount) {
+                    runtimeError("Not enough arguments for format string.");
+                    return NULL_VAL;
+                }
+
+                printValue(args[nextArg++]);
+                chars = p + 1;
+                vm.atLineStart = false;
+                continue;
+            }
+        }
+
+        printChar(*chars++);
+    }
+
+    if (nextArg != argCount) {
+        runtimeError("Too many arguments for format string.");
+        return NULL_VAL;
+    }
+
+    return NULL_VAL;
+}
+
 void registerCoreNatives() {
+    defineNative("printf", printfNative);
     defineNative("input", inputNative);
     defineNative("len", lenNative);
 }
