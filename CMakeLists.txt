@@ -20,6 +20,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(RELEASE_OUTPUT_DIR "${PROJECT_SOURCE_DIR}/dist")
+
 file(GLOB_RECURSE SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.c"
 )
@@ -29,21 +31,10 @@ add_executable(debug ${SOURCES})
 add_executable(profiler ${SOURCES})
 add_executable(release ${SOURCES})
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64)$")
-        set(HELIUM_ARCH "x86-64")
-    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|arm64|aarch64)$")
-        set(HELIUM_ARCH "arm64")
-    else()
-        set(HELIUM_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
-    endif()
-else()
-    set(HELIUM_ARCH "x86")
-endif()
 
 set_target_properties(release PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    OUTPUT_NAME "Helium-v${PROJECT_VERSION}-${HELIUM_ARCH}"
+    RUNTIME_OUTPUT_DIRECTORY "${RELEASE_OUTPUT_DIR}"
+    OUTPUT_NAME "helium"
 )
 
 set_target_properties(helium PROPERTIES

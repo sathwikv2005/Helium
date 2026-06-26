@@ -13,4 +13,8 @@ test*.he
 
 #cmake
 build/
+dist/
 compile_commands.json
+
+#installer
+release/
