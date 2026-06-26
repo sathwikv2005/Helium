@@ -114,6 +114,7 @@ static Value printfNative(int argCount, Value* args) {
 
                 printValue(args[nextArg++]);
                 chars = p + 1;
+                vm.atLineStart = false;
                 continue;
             }
         }
