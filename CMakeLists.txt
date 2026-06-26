@@ -27,6 +27,24 @@ file(GLOB_RECURSE SOURCES
 add_executable(helium ${SOURCES})
 add_executable(debug ${SOURCES})
 add_executable(profiler ${SOURCES})
+add_executable(release ${SOURCES})
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64)$")
+        set(HELIUM_ARCH "x86-64")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|arm64|aarch64)$")
+        set(HELIUM_ARCH "arm64")
+    else()
+        set(HELIUM_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+else()
+    set(HELIUM_ARCH "x86")
+endif()
+
+set_target_properties(release PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_NAME "Helium-v${PROJECT_VERSION}-${HELIUM_ARCH}"
+)
 
 set_target_properties(helium PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -47,19 +65,32 @@ function(setup_helium_target target)
     )
 endfunction()
 
+setup_helium_target(release)
 setup_helium_target(helium)
 setup_helium_target(debug)
 setup_helium_target(profiler)
 
 if(MSVC)
+    target_compile_options(release PRIVATE /O2 /GL)
     target_compile_options(helium PRIVATE /O2 /GL)
     target_compile_options(debug PRIVATE /O2 /GL)
 
+    target_link_options(release PRIVATE /LTCG)
     target_link_options(helium PRIVATE /LTCG)
     target_link_options(debug PRIVATE /LTCG)
 
     message(WARNING "gprof profiling is not supported on MSVC")
 else()
+    target_compile_options(release PRIVATE
+        -O3
+        -march=x86-64
+        -mtune=generic
+        -flto
+        -falign-functions=32
+        -falign-loops=32
+        -fno-tree-vectorize
+        -g0
+    )
     target_compile_options(helium PRIVATE
         -O3
         -march=native
@@ -81,6 +112,11 @@ else()
         -O0
     )
 
+
+    target_link_options(release PRIVATE
+        -flto
+        -s
+    )
     target_link_options(helium PRIVATE
         -flto
     )
