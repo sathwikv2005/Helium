@@ -17,8 +17,8 @@
 #endif
 
 static void printBanner() {
-    printf("\033[36m");  // cyan
-    printf("\033[3m");   // italic
+    printf(ANSI_CYAN);    // cyan
+    printf(ANSI_ITALIC);  // italic
 
     printf("############################################################\n");
     printf("#                                                          #\n");
@@ -34,7 +34,7 @@ static void printBanner() {
     printf("#                                                          #\n");
     printf("############################################################\n\n");
 
-    printf("\033[0m");
+    printf(ANSI_RESET);
 }
 
 static void printVersion() {

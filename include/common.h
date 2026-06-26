@@ -7,6 +7,14 @@
 
 #define HELIUM_PI 3.14159265358979323846
 
+#define ANSI_RED "\x1b[31m"
+#define ANSI_YELLOW "\x1b[33m"
+#define ANSI_CYAN "\033[36m"
+#define ANSI_BOLD "\x1b[1m"
+#define ANSI_ITALIC "\033[3m"
+#define ANSI_DIM "\x1b[2m"
+#define ANSI_RESET "\x1b[0m"
+
 #define NAN_BOXING
 #define UINT8_COUNT (UINT8_MAX + 1)
 

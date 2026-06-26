@@ -5,18 +5,23 @@
 void errorAt(Token* token, const char* message) {
     if (parser.panicMode) return;
     parser.panicMode = true;
-
+    fprintf(stderr, ANSI_RED "Compiler Error: " ANSI_RESET);
     if (currentModule != NULL) {
-        fprintf(stderr, "%s:", currentModule->path->chars);
+        fprintf(stderr, ANSI_YELLOW "%s:" ANSI_RESET,
+                currentModule->path->chars);
     }
-    fprintf(stderr, "%d: error", token->line);
+    fprintf(stderr, ANSI_YELLOW "%d:" ANSI_RESET, token->line);
 
     if (token->type == TOKEN_EOF) {
-        fprintf(stderr, " at end");
+        fprintf(stderr, ANSI_DIM " at " ANSI_RESET ANSI_BOLD ANSI_CYAN
+                                 "end" ANSI_RESET);
     } else if (token->type == TOKEN_ERROR) {
         // nothing
     } else {
-        fprintf(stderr, " at '%.*s'", token->length, token->start);
+        fprintf(stderr,
+                ANSI_DIM " at " ANSI_RESET ANSI_BOLD ANSI_CYAN
+                         "'%.*s'" ANSI_RESET,
+                token->length, token->start);
     }
 
     fprintf(stderr, ": %s\n", message);

@@ -1,6 +1,7 @@
 #include "vm_common.h"
 
 void runtimeError(const char* format, ...) {
+    fprintf(stderr, ANSI_RED "Runtime Error: " ANSI_RESET);
     va_list args;
     va_start(args, format);
     vfprintf(stderr, format, args);
@@ -11,7 +12,8 @@ void runtimeError(const char* format, ...) {
         CallFrame* frame = &vm.frames[i];
         ObjFunction* function = frame->closure->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
-        fprintf(stderr, "%s:%d: in ", frame->module->path->chars,
+        fprintf(stderr, ANSI_YELLOW "%s:%d:" ANSI_RESET " in ",
+                frame->module->path->chars,
                 getLine(&frame->closure->function->chunk, instruction));
         if (function->name == NULL) {
             fprintf(stderr, "script\n");
