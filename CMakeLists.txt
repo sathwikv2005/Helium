@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Helium C)
+file(READ "${CMAKE_SOURCE_DIR}/VERSION" HELIUM_VERSION)
+string(STRIP "${HELIUM_VERSION}" HELIUM_VERSION)
+
+project(Helium
+    VERSION ${HELIUM_VERSION}
+    LANGUAGES C
+)
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/version.h.in"
+    "${CMAKE_BINARY_DIR}/generated/include/version.h"
+    @ONLY
+)
+
+
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -26,17 +40,16 @@ set_target_properties(profiler PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}"
 )
 
-target_include_directories(helium PRIVATE
-    "${PROJECT_SOURCE_DIR}/include"
-)
+function(setup_helium_target target)
+    target_include_directories(${target} PRIVATE
+        "${PROJECT_SOURCE_DIR}/include"
+        "${CMAKE_BINARY_DIR}/generated/include"
+    )
+endfunction()
 
-target_include_directories(debug PRIVATE
-    "${PROJECT_SOURCE_DIR}/include"
-)
-
-target_include_directories(profiler PRIVATE
-    "${PROJECT_SOURCE_DIR}/include"
-)
+setup_helium_target(helium)
+setup_helium_target(debug)
+setup_helium_target(profiler)
 
 if(MSVC)
     target_compile_options(helium PRIVATE /O2 /GL)
