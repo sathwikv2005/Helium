@@ -1,0 +1,17 @@
+printf("Hello, World!\n");
+
+printf("{}\n", 42);
+
+printf("{}\n", "hello");
+
+printf("{} {}\n", 1, 2);
+
+printf("{} {} {} {}\n", 123, 3.14, true, [50, null, 45907, "ryedy", {}]);
+
+printf("Line1\nLine2\n");
+printf("A\tB\n");
+printf("\\n \n");
+
+printf("x = {}, y = {} \n", 10, 20);
+
+printf("\{\} \n");
