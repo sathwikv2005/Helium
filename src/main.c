@@ -49,6 +49,12 @@ static void repl() {
     if (isatty(fileno(stdin))) {
         printBanner();
     }
+    /*
+        A repl session must only use this one module as it's main script module.
+
+        Not passing in this module and directly using interpret(source) will
+        result in new main modules being created on every line that runs.
+    */
     ObjModule* replModule = newModule(vm.specialStrings[SPECIAL_SCRIPT]);
     char line[1024];
     for (;;) {
