@@ -54,6 +54,13 @@ int resolveLocal(Compiler* compiler, Token* name) {
     return -1;
 }
 
+/*
+    Upvalues capture local variables that outlive the stack frame.
+
+    Open upvalues point directly into the VM stack.
+    Once their stack slot is popped, they become closed by copying the value
+    into heap storage.
+*/
 static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal,
                       bool isConst) {
     int upvalueCount = compiler->function->upvalueCount;
