@@ -1,4 +1,13 @@
 #include "compiler_common.h"
+/*
+    Expressions are parsed using Pratt parser.
+
+    Each token has two parsing functions:
+    prefix()
+    infix()
+
+    along with a precedence level.
+*/
 
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, call, PREC_CALL},
