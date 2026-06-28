@@ -38,6 +38,12 @@
 #define GET_DEBUG_STRESS_GC() (((vm.debugFlags) & DEBUG_STRESS_GC) != 0)
 #define GET_DEBUG_LOG_GC() (((vm.debugFlags) & DEBUG_LOG_GC) != 0)
 
+/*
+    A call frame represents one active function call.
+
+    slots point to the first local variable of this frame, while ip tracks the
+    next instruction to execute.
+ */
 typedef struct {
     ObjClosure* closure;
     uint8_t* ip;
