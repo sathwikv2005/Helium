@@ -78,6 +78,12 @@ void emitLoop(int loopStart) {
 
 void emitConstant(Value value) { emitBytes(OP_CONSTANT, makeConstant(value)); }
 
+/*
+    Forward jumps are created and emitted using a placeholder offset.
+
+    Once the final distance is known, patchJump() overwrites the placeholder
+    with the final distance.
+*/
 void patchJump(int offset) {
     // +2 to adjust for the bytecodes for the jump offset itself.
     int jump = currentChunk()->count - (offset + 2);
