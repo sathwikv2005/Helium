@@ -95,6 +95,11 @@ typedef struct {
     int grayCount;
     int grayCapacity;
     Obj** grayStack;
+
+    /*
+        Invariant:
+        stackTop always points one past the last occupied stack slot.
+    */
     Value* stackTop;
 
     bool currentGCMark;
