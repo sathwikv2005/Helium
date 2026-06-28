@@ -34,11 +34,17 @@ void freeVM() {
 static InterpretResult run() {
     CallFrame* frame = &vm.frames[vm.frameCount - 1];
     register uint8_t* ip = frame->ip;
+/*
+    The ip is cached locally so, that the c compiler can store it in a register
+    for faster access hence, the ip must be written back to the call frame so
+    that the runtimeError() can report the correct source line.
+*/
 #define RUNTIME_ERROR(...)         \
     do {                           \
         frame->ip = ip;            \
         runtimeError(__VA_ARGS__); \
     } while (false)
+
 #define READ_BYTE() (*ip++)
 #define READ_CONSTANT() \
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
