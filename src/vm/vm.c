@@ -30,10 +30,16 @@ void freeVM() {
     freeTable(&vm.builtins);
     freeTable(&vm.strings);
 }
+/*
+    Helium VM's main dispatch loop
 
+    Each iteration executes exactly one bytecode instruction.
+    READ_* macros decode the operands and advance the instruction pointer.
+*/
 static InterpretResult run() {
     CallFrame* frame = &vm.frames[vm.frameCount - 1];
     register uint8_t* ip = frame->ip;
+
 /*
     The ip is cached locally so, that the c compiler can store it in a register
     for faster access hence, the ip must be written back to the call frame so
@@ -50,6 +56,7 @@ static InterpretResult run() {
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
 #define READ_STRING() AS_STRING(READ_CONSTANT())
+
 #define BINARY_OP(valueType, op)                          \
     do {                                                  \
         if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
