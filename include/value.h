@@ -11,6 +11,22 @@ typedef struct ObjString ObjString;
 typedef enum { VAL_BOOL, VAL_NULL, VAL_NUMBER, VAL_OBJ } ValueType;
 
 #ifdef NAN_BOXING
+
+/*
+    values in Helium are stored using NaN-boxing.
+
+    IEEE-754 doubles reserve a large range of NaN bit patterns.
+    Helium uses those unused NaN bits to encode value types:
+    - null
+    - booleans
+    - object pointers (assumes pointers fit within 48 bits)
+
+    numbers remain as doubles.
+
+    this allows every Value to be exactly 64 bits while avoiding unions
+    and improves cache locality.
+*/
+
 #define SIGN_BIT ((uint64_t)0x8000000000000000)
 // Quite NaN bits
 #define QNAN ((uint64_t)0x7ffc000000000000)
@@ -63,7 +79,7 @@ static inline Value numToValue(double num) {
 }
 
 #else
-// Some cpu architectures might not support the nan boxing implementation.
+// Some cpu architectures might not support the NaN boxing implementation.
 typedef struct {
     ValueType type;
     union {
