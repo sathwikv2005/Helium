@@ -89,6 +89,11 @@ void parsePrecedence(Precedence precedence) {
     }
 }
 
+/*
+    Panic mode suppresses cascading compiler errors.
+
+    Once synchronization is reached, normal parsing resumes.
+*/
 void synchronize() {
     parser.panicMode = false;
 
