@@ -50,6 +50,12 @@ static uint32_t hashString(const char* key, int length) {
     return hash;
 }
 
+/*
+    Every unique string is interned exactly once.
+
+    This reduces duplicate allocations and allows string equality to be just a
+    simple pointer comparison.
+ */
 ObjString* takeString(char* chars, int length) {
     uint32_t hash = hashString(chars, length);
 
@@ -63,6 +69,12 @@ ObjString* takeString(char* chars, int length) {
     return allocateString(chars, length, hash);
 }
 
+/*
+    Every unique string is interned exactly once.
+
+    This reduces duplicate allocations and allows string equality to be just a
+    simple pointer comparison.
+ */
 ObjString* copyString(const char* chars, int length) {
     uint32_t hash = hashString(chars, length);
 
