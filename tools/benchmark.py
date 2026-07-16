@@ -61,7 +61,9 @@ def get_language_name(filename):
         return "C (GCC 6.3.0, -O2)"
 
     elif ext == ".he":
-        return "Helium"
+        out = get_output("helium --version")
+        version = out.replace("Helium ", "")
+        return f"Helium ({version})"
 
     return filename
 
